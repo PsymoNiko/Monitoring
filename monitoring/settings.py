@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # apps
     "student",
-    "admin",
+    "ceo",
     "mentor",
     # framework
     "rest_framework",
