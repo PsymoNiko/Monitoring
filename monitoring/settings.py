@@ -130,3 +130,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MINIMUM_AMOUNT_OF_STUDY = 8
+COST_OF_PUNISHMENT_PER_HOUR = 10000
+
+
+
+
+
