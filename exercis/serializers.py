@@ -1,9 +1,18 @@
 from rest_framework import serializers
-from .models import ExerciseModel
+from .models import StudentExerciseModel,MentorExerciseModel
 
 
 
-class ExerciseSerializer(serializers.ModelSerializer):
+class StudentExerciseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ExerciseModel
+        model = StudentExerciseModel
         fields = '__all__'
+
+
+
+class MentorExerciseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MentorExerciseModel
+        fields = '__all__'
+
+        
