@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'DailyReport',
     # framework
     "rest_framework",
+    'rest_framework.authtoken',
 
 ]
 
@@ -134,3 +135,10 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'profile_images')
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+}
