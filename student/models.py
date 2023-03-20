@@ -6,21 +6,28 @@ from mentor.models import Mentor
 
 class Student(models.Model):
     PERSONALITIES = (
-        'INTP', 'INTJ', 'ENTJ', 'ENTP',
-        'INFJ', 'INFP', 'ENFJ', 'ENFP',
-        'ISTJ', 'ISFJ', ' ESTJ', 'ESFJ',
-        'ISTP', 'ISFP', 'ESTP', 'ESFP',
+        ('INTP', 'منطق دان'), ('INTJ', 'معمار'), ('ENTJ', 'فرمانده'), ('ENTP', 'مجادله گر'),
+        ('INFJ', 'حامی'), ('INFP', 'میانجی'), ('ENFJ', 'قهرمان'), ('ENFP', 'پیکارگر'),
+        ('ISTJ', 'تدارکاتچی'), ('ISFJ', 'مدافع'), ('ESTJ', 'مجری'), ('ESFJ', 'سفیر'),
+        ('ISTP', 'چیره دست'), ('ISFP', 'ماجراجو'), ('ESTP', 'کارآفرین'), ('ESFP', 'سرگرم کننده'),
     )
 
-    student = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=35, editable=False)
     last_name = models.CharField(max_length=35, editable=False)
-    password = models.CharField(max_length=128)
+    # password = models.CharField(max_length=128)
     phone_number = models.CharField(max_length=13, editable=True)
     date_of_birth = models.DateField()
     identity_code = models.IntegerField(editable=False, unique=True)
     personality = models.CharField(max_length=4, choices=PERSONALITIES)
     avatar = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        # Check if this is a new student account is being created
+        if not self.pk:
+            raise Exception("New student account can only be created by an admin.")
+        super().save(*args, **kwargs)
 
 
 class CurrentCourse(models.Model):
@@ -32,7 +39,7 @@ class CurrentCourse(models.Model):
 
 
 class CompletedCourses(models.Model):
-    course_name = models.CharField()
+    course_name = models.CharField(max_length=50)
     mentor = models.OneToOneField(Mentor, on_delete=models.CASCADE)
     course_length = models.IntegerField()
     started_at = models.DateField()
