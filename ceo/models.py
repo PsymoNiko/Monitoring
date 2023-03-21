@@ -31,11 +31,11 @@ class Admin(models.Model):
                              mentor_phone_number, mentor_identity_code, mentor_personality,
                              mentor_avatar):
         # Create a new User object with a unique username
-        username = User.objects.create_user(username=f"mentor_{mentor_phone_number}")
+        username = User.objects.create_user(username=f"mentor_{mentor_identity_code}")
 
         # Set password for the user
         user = User.objects.get(username=username.username)
-        user.set_password(mentor_identity_code)
+        user.set_password('mentor_identity_code')
         user.save()
 
         # Create a new Mentor object with the created user and associate it with the admin

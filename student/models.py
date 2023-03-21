@@ -14,12 +14,12 @@ class Student(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=35, editable=False)
-    last_name = models.CharField(max_length=35, editable=False)
+    first_name = models.CharField(max_length=35)
+    last_name = models.CharField(max_length=35)
     # password = models.CharField(max_length=128)
     phone_number = models.CharField(max_length=13, editable=True)
     date_of_birth = models.DateField()
-    identity_code = models.IntegerField(editable=False, unique=True)
+    identity_code = models.IntegerField(unique=True)
     personality = models.CharField(max_length=4, choices=PERSONALITIES)
     avatar = models.ImageField(upload_to='profile_images/', blank=True, null=True)
 
