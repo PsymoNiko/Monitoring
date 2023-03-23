@@ -8,7 +8,8 @@ class ExerciseModel(models.Model):
     caption = models.TextField()
     exercise_file = models.FileField(upload_to='exercise/', blank=True, null=True)
     mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
-    Student = models.ManyToManyField(Student, through='StudentExerciseModel')
+    Students = models.ManyToManyField(Student, through='StudentExerciseModel')
+    """ through?"""
 
 
 class StudentExerciseModel(models.Model):
@@ -25,10 +26,10 @@ class StudentExerciseModel(models.Model):
         return self.caption
 
 
-# class MentorExerciseModel(models.Model):
-#     # student_name = models.CharField(max_length=100)
-#     student_name = models.ForeignKey(Student, on_delete=models.CASCADE)
-#     # exercise_name = models.CharField(max_length=100)
-#     exercise_name = models.ForeignKey(ExerciseModel,on_delete=models.CASCADE)
-#     is_seen_by_teacher = models.BooleanField(default=False)
-#     data_submitted = models.DateField()
+class MentorExerciseModel(models.Model):
+    # student_name = models.CharField(max_length=100)
+    student_name = models.ForeignKey(Student, on_delete=models.CASCADE)
+    # exercise_name = models.CharField(max_length=100)
+    exercise_name = models.ForeignKey(ExerciseModel,on_delete=models.CASCADE)
+    is_seen_by_mentor = models.BooleanField(default=False)
+    data_submitted = models.DateField()
