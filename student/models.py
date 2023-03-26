@@ -12,22 +12,26 @@ class Student(models.Model):
         ('ISTP', 'چیره دست'), ('ISFP', 'ماجراجو'), ('ESTP', 'کارآفرین'), ('ESFP', 'سرگرم کننده'),
     )
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
     mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
-    # password = models.CharField(max_length=128)
-    phone_number = models.CharField(max_length=13, editable=True)
+    phone_number = models.CharField(max_length=13, editable=True, unique=True)
     date_of_birth = models.DateField()
     identity_code = models.IntegerField(unique=True)
     personality = models.CharField(max_length=4, choices=PERSONALITIES)
     avatar = models.ImageField(upload_to='profile_images/', blank=True, null=True)
 
-    def save(self, *args, **kwargs):
-        # Check if this is a new student account is being created
-        if not self.pk:
-            raise Exception("New student account can only be created by an admin.")
-        super().save(*args, **kwargs)
+
+    USERNAME_FIELD = 'phone_number'
+    REQUIRED_FIELDS = ['mentor', 'first_name', 'last_name', 'date_of_birth', 'phone_number', 'personality']
+
+
+    # def save(self, *args, **kwargs):
+    #     # Check if this is a new student account is being created
+    #     if not self.pk:
+    #         raise Exception("New student account can only be created by an admin.")
+    #     super().save(*args, **kwargs)
 
 
 class CurrentCourse(models.Model):
