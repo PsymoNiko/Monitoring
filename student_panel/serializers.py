@@ -1,15 +1,18 @@
 from rest_framework import serializers
-from .models import DailyReportModel
+from .models import DailyReport
 
 
 class DailyReportSerializer(serializers.ModelSerializer):
-    amount_of_study = serializers.CharField(max_length=5)
-
-    def amount_of_study_validators(self, study: str) -> str:
-        if not study.isnumeric():
-            raise serializers.ValidationError("Please Enter a Valid Amount")
-        return study
-
     class Meta:
-        model = DailyReportModel
-        fields = ["number_of_report", "report_time", "explain_report", "amount_of_study"]
+        model = DailyReport
+        fields = "__all__"
+
+    def amount_of_study_report_validator(self, amount_of_study_report: str) -> str:
+        if not amount_of_study_report[:1].isnumeric():
+            raise serializers.ValidationError("Please Enter a Valid Amount")
+        elif not amount_of_study_report[3:].isnumeric():
+            raise serializers.ValidationError("Please Enter a Valid Amount")
+        return amount_of_study_report
+
+
+
