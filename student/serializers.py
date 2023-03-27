@@ -19,6 +19,7 @@ class StudentSerializer(serializers.ModelSerializer):
     personality = serializers.ChoiceField(choices=Student.PERSONALITIES, required=True)
     avatar = serializers.ImageField(required=False)
     # password = identity_code
+    # password = identity_code
     class Meta:
         model = Student
         fields = ('mentor', 'first_name', 'last_name', 'date_of_birth', 'phone_number', 'identity_code',
@@ -29,6 +30,7 @@ class StudentSerializer(serializers.ModelSerializer):
         user = User.objects.create(username=username)
 
         user.set_password(validated_data['identity_code'])
+        # user.set_password('password')
         user.save()
         student = Student.objects.create(user=user, **validated_data)
 
@@ -39,3 +41,25 @@ class StudentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("A student with this phone_number is exist")
         return value
 
+
+class StudentTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token['first_name'] = user.first_name
+        token['last_name'] = user.last_name
+
+        # Add related mentor's name to the token
+        token['mentor'] = user.student_profile.mentor.first_name
+
+        return token
+
+class LoginViewAsStudentSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(allow_blank=True)
+    password = serializers.CharField(allow_blank=True, write_only=True)
+
+    class Meta:
+        model = Student
+        fields = ('username', 'password', 'first_name', 'last_name')
