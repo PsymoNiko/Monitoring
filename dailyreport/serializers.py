@@ -1,12 +1,15 @@
 from rest_framework import serializers
-from .models import ExerciseSubmission
 
-class ExerciseSubmissionSerializer(serializers.ModelSerializer):
+from .models import MentorReportSubmission
+from .models import StudentReport
+
+
+class ReportSubmissionMentorSerializer(serializers.ModelSerializer):
     delay = serializers.SerializerMethodField()
     detail_url = serializers.SerializerMethodField()
 
     class Meta:
-        model = ExerciseSubmission
+        model = MentorReportSubmission
         fields = ('id', 'report_number', 'date', 'student_name', 'total_hours', 'delay', 'detail_url')
 
     def get_delay(self, obj):
@@ -19,27 +22,24 @@ class ExerciseSubmissionSerializer(serializers.ModelSerializer):
     def get_detail_url(self, obj):
         return f"/exercises/{obj.id}/"
 
-class ExerciseSubmissionDetailSerializer(serializers.ModelSerializer):
+class ReportSubmissionDetailMentorSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ExerciseSubmission
+        model = MentorReportSubmission
         fields = ('id', 'report_number', 'date', 'student_name', 'total_hours', 'comment')
 
-class ExerciseSubmissionCreateSerializer(serializers.ModelSerializer):
+class ReportSubmissionCreateMentorSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ExerciseSubmission
+        model = MentorReportSubmission
         fields = ('report_number', 'date', 'student_name', 'total_hours')
 
-class ExerciseSubmissionUpdateSerializer(serializers.ModelSerializer):
+class ReportSubmissionUpdateMentorSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ExerciseSubmission
+        model = MentorReportSubmission
         fields = ('comment',)
 
 
 #panel student
-
-from .models import Report
-
-class ReportSerializer(serializers.ModelSerializer):
+class ReportStudentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Report
+        model = StudentReport
         fields = ('id', 'date', 'report_number', 'caption', 'hours', 'sent')

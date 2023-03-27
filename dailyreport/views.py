@@ -1,82 +1,79 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.shortcuts import get_object_or_404
-from .models import ExerciseSubmission
-from .serializers import ExerciseSubmissionSerializer, ExerciseSubmissionDetailSerializer, ExerciseSubmissionCreateSerializer, ExerciseSubmissionUpdateSerializer
+from rest_framework import generics
 
-class ExerciseSubmissionList(APIView):
+
+from django.shortcuts import get_object_or_404
+from datetime import date, datetime
+
+
+from .models import MentorExerciseSubmission
+from .models import StudentReport
+
+from .serializers import ReportSubmissionMentorSerializer, ReportSubmissionDetailMentorSerializer, ReportSubmissionCreateMentorSerializer, ReportSubmissionUpdateMentorSerializer ,ReportStudentSerializer
+
+
+class ReportSubmissionList(APIView):
     def get(self, request):
-        submissions = ExerciseSubmission.objects.all()
-        serializer = ExerciseSubmissionSerializer(submissions, many=True)
+        submissions = MentorExerciseSubmission.objects.all()
+        serializer = ReportSubmissionMentorSerializer(submissions, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = ExerciseSubmissionCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = ReportSubmissionCreateMentorSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
 
-class ExerciseSubmissionDetail(APIView):
+class ReportSubmissionDetail(APIView):
     def get(self, request, pk):
-        submission = get_object_or_404(ExerciseSubmission, pk=pk)
-        serializer = ExerciseSubmissionDetailSerializer(submission)
+        submission = get_object_or_404(MentorExerciseSubmission, pk=pk)
+        serializer = ReportSubmissionDetailMentorSerializer(submission)
         return Response(serializer.data)
 
     def put(self, request, pk):
-        submission = get_object_or_404(ExerciseSubmission, pk=pk)
-        serializer = ExerciseSubmissionUpdateSerializer(submission, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
+        submission = get_object_or_404(MentorExerciseSubmission, pk=pk)
+        serializer = ReportSubmissionUpdateMentorSerializer(submission, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+        
 #panel student
-from datetime import date, datetime, time
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.decorators import api_view
-from .models import Report
-from .serializers import ReportSerializer
+class ReportListStudent(generics.ListCreateAPIView):
+    queryset = StudentReport.objects.all()
+    serializer_class = ReportStudentSerializer
 
-class ReportList(generics.ListCreateAPIView):
-    queryset = Report.objects.all()
-    serializer_class = ReportSerializer
+class ReportDetailStudent(generics.RetrieveUpdateDestroyAPIView):
+    queryset = StudentReport.objects.all()
+    serializer_class = ReportStudentSerializer
 
-class ReportDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Report.objects.all()
-    serializer_class = ReportSerializer
-
-class UnsentedReports(APIView):
+class UnsentedReportsStudent(APIView):
     def get(self, request):
-        unsent_reports = Report.objects.filter(sent=False, date=date.today()).count()
+        unsent_reports = StudentReport.objects.filter(sent=False, date=date.today()).count()
         return Response({'unsent_reports': unsent_reports})
 
-class SentReports(APIView):
+class SentReportsStudent(APIView):
     def get(self, request):
-        reports = Report.objects.filter(sent=True)
-        serializer = ReportSerializer(reports, many=True)
+        reports = StudentReport.objects.filter(sent=True)
+        serializer = ReportStudentSerializer(reports, many=True)
         return Response({'reports': serializer.data})
 
-class SearchReports(APIView):
+
+class SearchReportsStudent(APIView):
     def get(self, request):
         report_number = request.query_params.get('report_number')
         date_str = request.query_params.get('date')
         if report_number:
-            report = Report.objects.filter(report_number=report_number).first()
+            report = StudentReport.objects.filter(report_number=report_number).first()
         elif date_str:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-            report = Report.objects.filter(date=date_obj).first()
+            report = StudentReport.objects.filter(date=date_obj).first()
         else:
             report = None
         if report:
-            serializer = ReportSerializer(report)
+            serializer = ReportStudentSerializer(report)
             return Response(serializer.data)
         else:
             return Response({'error': 'Report not found'}, status=404)
