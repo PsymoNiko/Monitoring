@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # apps
     "student_panel",
-    "ceo_panel",
+    "admin_panel",
     "mentor_panel",
     # framework
     "rest_framework",
@@ -134,7 +134,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MINIMUM_AMOUNT_OF_STUDY = 8
 COST_OF_PUNISHMENT_PER_HOUR = 10000
 
-
+MEDIA_ROOT = os.path.join(BASE_DIR, "task111")
 
 
 
