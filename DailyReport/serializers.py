@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from .models import Report
+from .models import DailyReport
 
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Report
+        model = DailyReport
         fields = ['id', 'hours', 'minutes', 'text']
+

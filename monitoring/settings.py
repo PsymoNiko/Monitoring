@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "mentor",
     # framework
     "rest_framework",
+    'DailyReport',
 
 ]
 
