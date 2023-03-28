@@ -1,8 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
-from .serializers import DailyReportSerializer
+from django.db.models import F
+from django.db.models import Sum
+import requests
+from .serializers import ReportSerializer
 from .tasks import (
     max_amount_of_study,
     min_amount_of_study,
@@ -11,28 +13,56 @@ from .tasks import (
     punishment_for_fraction_of_hour,
     average_of_amount_of_report
 )
-from .models import DailyReport
+from .models import Report
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from datetime import datetime
 
 
 class DailyReportView(APIView):
+    def post(self, request):
+        serializer = ReportSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request, *args, **kwargs):
-        report_serializer = DailyReportSerializer(data=request.data)
-        report_serializer.is_valid(raise_exception=True)
-        return Response({"massage": "ok"}, status=status.HTTP_201_CREATED)
+
+class UnsubmittedReportsView(APIView):
+    def get(self, request):
+        user = request.user
+        report_count = Report.objects.filter(user=user).count()
+        submitted_count = Report.objects.filter(user=user, created_at__lte=F('deadline')).count()
+        unsubmitted_count = report_count - submitted_count
+        return Response({'unsubmitted_count': unsubmitted_count, 'total_count': report_count})
 
 
-class RetrieveReport(APIView):
+class DelayedReportsView(APIView):
+    def get(self, request):
+        user = request.user
+        delayed_reports = Report.objects.filter(user=user, delayed=True)
+        serializer = ReportSerializer(delayed_reports, many=True)
+        return Response(serializer.data)
 
-    def get(self, request, report_number, *args, **kwargs):
-        report_info = DailyReport.objects.get(report_number)
-        get_report_serializer = DailyReportSerializer(instance=report_info)
-        get_report_serializer.is_valid(raise_exception=True)
-        deadline = get_report_serializer.validated_data.get("date_field")
-        time_of_sending_report = get_report_serializer.validated_data.get("day_of_report")
-        if deadline < time_of_sending_report:
-            delay = deadline - time_of_sending_report
-            return Response(delay, )
+
+class ReportSummaryView(APIView):
+    def get(self, request):
+        user = request.user
+        amount = Report.objects.filter(user=user).values('report_number').annotate(
+            total_study=Sum('study_amount'))
+        return Response(amount)
+
+
+class SomeOtherClass(APIView):
+    def some_method(self, request):
+        user = self.request.user
+        report_summary_response = requests.get('http://localhost:8000/reports/summery/',
+                                               auth=(user.username, user.password))
+        report_summary = report_summary_response.json()
+        # do something with the report_summary list here
+        return report_summary
 
 
 class ReportView(APIView):

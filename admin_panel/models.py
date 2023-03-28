@@ -20,7 +20,7 @@ class DefineMentorModel(models.Model):
         ('ENFJ', "Teacher"),
         ('ENTJ', "Commander"),
         )
-    mentor_picture = models.ImageField(upload_to="")
+    # mentor_picture = models.ImageField(upload_to="")
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     id_number = models.CharField(max_length=10)
@@ -49,7 +49,7 @@ class DefineStudentModel(models.Model):
         ('ENFJ', "Teacher"),
         ('ENTJ', "Commander"),
         )
-    student_picture = models.ImageField(upload_to="task111")
+    # student_picture = models.ImageField(upload_to="task111")
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     id_number = models.CharField(max_length=10)
@@ -62,7 +62,7 @@ class DefineStudentModel(models.Model):
 class Course(models.Model):
     DAY_OF_THE_WEEK = (("sunday", 'یک شنبه'), ("monday", "دو شنبه"), ("tuesday", "سه شنبه"), ("wednesday", "چهار شنبه"),
                        ("thursday", "پنج شنبه"), ("friday", "جمعه"), ("saturday", "شنبه"))
-    course_picture = models.ImageField(upload_to="task111")
+    # course_picture = models.ImageField(upload_to="task111")
     class_days = models.CharField(max_length=10, choices=DAY_OF_THE_WEEK)
     time_of_class = models.CharField(max_length=10)
     course_name = models.CharField(max_length=50)

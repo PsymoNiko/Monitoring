@@ -1,25 +1,17 @@
-from datetime import date
-
 from django.db import models
+from django.contrib.auth.models import User
 
 
-class DailyReport(models.Model):
-    report_number = models.IntegerField(default=0)
-    day_of_report = models.DateField(auto_now_add=True)
-    date_field = models.DateField(default=date.today)
+class Report(models.Model):
+    report_number = models.IntegerField()
     report_text = models.TextField()
-    amount_of_study_report = models.CharField(max_length=5)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    deadline = models.DateTimeField()
+    delayed = models.BooleanField(default=False)
+    study_amount = models.CharField(max_length=2)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # def save(self, *args, **kwargs):
+    #     if self.created_at > self.deadline:
+    #         self.delayed = True
+    #     super().save(*args, **kwargs)
