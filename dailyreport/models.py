@@ -18,6 +18,7 @@ class StudentReport(models.Model):
     report_number = models.IntegerField()
     caption = models.CharField(max_length=255)
     hours = models.DecimalField(max_digits=5, decimal_places=2)
+    minute = models.IntegerField()
     sent = models.BooleanField(default=False)
 
     def __str__(self):

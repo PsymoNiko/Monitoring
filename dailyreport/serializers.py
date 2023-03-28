@@ -42,4 +42,4 @@ class ReportSubmissionUpdateMentorSerializer(serializers.ModelSerializer):
 class ReportStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentReport
-        fields = ('id', 'date', 'report_number', 'caption', 'hours', 'sent')
+        fields = ('id', 'date', 'report_number', 'caption', 'hours', 'sent','minute')

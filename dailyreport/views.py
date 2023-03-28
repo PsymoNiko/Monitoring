@@ -40,6 +40,24 @@ class ReportSubmissionDetail(APIView):
         serializer.save()
         return Response(serializer.data)
         
+class SearchReports(APIView):
+    def get(self, request):
+        report_number = request.query_params.get('report_number')
+        date_str = request.query_params.get('date')
+        if report_number:
+            report = StudentReport.objects.filter(report_number=report_number).first()
+        elif date_str:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+            report = StudentReport.objects.filter(date=date_obj).first()
+        else:
+            report = None
+        if report:
+            serializer = ReportStudentSerializer(report)
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'Report not found'}, status=404)
+
+
 #panel student
 class ReportListStudent(generics.ListCreateAPIView):
     queryset = StudentReport.objects.all()
