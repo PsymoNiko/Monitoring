@@ -1,84 +1,57 @@
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-from .models import DefineMentorModel, DefineStudentModel,AdminCommentAndOrganizationalCultureModel
+
+from django.urls import reverse
+
+from django.contrib.auth.models import User
+from .models import Course
+from mentor.models import Mentor
 
 
-class DefineMentorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DefineMentorModel
-        fields = "__all__"
-
-    def validata_phone_number(self, phone_number: str) -> str:
-        if len(phone_number) != 11 or 13:
-            raise serializers.ValidationError("please enter a Valid Number")
-        elif not phone_number.startswith("09") or str(phone_number).startswith("+989"):
-            raise serializers.ValidationError("please enter a Valid Number")
-        elif not phone_number[1:].isnumeric():
-            raise serializers.ValidationError("please enter a Valid Number")
-        return phone_number
-
-    def validate_id_card(self, id_number: str) -> str:
-        if len(id_number) != 10:
-            raise serializers.ValidationError("Please Enter a Valid ID_number")
-        elif not id_number.isnumeric():
-            raise serializers.ValidationError("Please Enter a Valid ID_number")
-        return id_number
-
-    def validate_first_name(self, first_name: str) -> str:
-        if not first_name.isalpha():
-            raise serializers.ValidationError("Please Enter a Valid Name")
-        return first_name
-
-    def validate_last_name(self, last_name: str) -> str:
-        if not last_name.isalpha():
-            raise serializers.ValidationError("Please Enter a Valid Name")
-        return last_name
-
-    def validate_mentor_code(self, mentor_code: str) -> str:
-        if not mentor_code.isnumeric():
-            raise serializers.ValidationError("Please Enter a Valid Code")
-        return mentor_code
-
-
-class DefineStudentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DefineStudentModel
-        fields = "__all__"
-
-    def validate_id_card(self, id_number: str) -> str:
-        if len(id_number) != 10:
-            raise serializers.ValidationError("Please Enter a Valid ID_number")
-        elif not id_number.isnumeric():
-            raise serializers.ValidationError("Please Enter a Valid ID_number")
-        return id_number
-
-    def validate_phone_number(self, phone_number: str) -> str:
-        if not phone_number[1:].isnumeric():
-            raise serializers.ValidationError("please enter a Valid Number")
-        elif not phone_number.startswith("09") or str(phone_number).startswith("+989"):
-            raise serializers.ValidationError("please enter a Valid Number")
-        elif len(phone_number) != 11 or 13:
-            raise serializers.ValidationError("please enter a Valid Number")
-        return phone_number
-
-    def validate_first_name(self, first_name: str) -> str:
-        if not first_name.isalpha():
-            raise serializers.ValidationError("Please Enter a Valid Name")
-        return first_name
-
-    def validate_last_name(self, last_name: str) -> str:
-        if not last_name.isalpha():
-            raise serializers.ValidationError("Please Enter a Valid Name")
-        return last_name
-
-    def validate_student_code(self, student_code: str) -> str:
-        if not student_code.isnumeric():
-            raise serializers.ValidationError("Please Enter a Valid Code")
-        return student_code
-
-
-class AdminCommentAndOrganizationalCultureSerializer(serializers.Serializer):
+class LoginViewAsAdminSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(allow_blank=True)
+    password = serializers.CharField(allow_blank=True, write_only=True)
 
     class Meta:
-        model = AdminCommentAndOrganizationalCultureModel
-        fields = "__all__"
+        model = User
+        fields = ('username', 'password', 'email', 'first_name', 'last_name')
 
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token['user_id'] = user.id
+        token['username'] = user.username
+
+        return token
+
+
+class CourseSerializers(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='course-detail')
+    name = serializers.CharField(required=True)
+    mentor = serializers.PrimaryKeyRelatedField(queryset=Mentor.objects.all())
+    start_at = serializers.DateField(required=True)
+    duration = serializers.IntegerField(default=6, min_value=0)
+    class_time = serializers.TimeField()  # format=['%H']
+    how_to_hold = serializers.ChoiceField(choices=Course.HOLDING, required=True)
+    short_brief = serializers.CharField(max_length=70)
+
+    class Meta:
+        model = Course
+        fields = ('id', 'name', 'mentor', 'start_at', 'duration', 'class_time',
+                  'how_to_hold', 'short_brief', 'url')
+
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get("name", instance.name)
+        instance.mentor = validated_data.get("mentor", instance.mentor)
+        instance.start_at = validated_data.get("start_at", instance.start_at)
+        instance.duration = validated_data.get("duration", instance.duration)
+        instance.class_time = validated_data.get("class_time", instance.class_time)
+        instance.how_to_hold = validated_data.get("how_to_hold", instance.how_to_hold)
+        instance.short_brief = validated_data.get("short_brief", instance.short_brief)
+        instance.save()
+        return instance
