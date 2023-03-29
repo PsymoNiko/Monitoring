@@ -6,6 +6,7 @@ from student.models import Student
 
 
 class StudentExerciseSerializer(serializers.ModelSerializer):
+    exercise_text = serializers.CharField(default='')
     class Meta:
         model = StudentExerciseModel
         fields = '__all__'
@@ -29,4 +30,6 @@ class MentorExerciseSerializer(serializers.ModelSerializer):
         #     student.seen_count = seen_count
         #     student.save()
         #     return exercise
+
+
 

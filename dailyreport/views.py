@@ -8,15 +8,15 @@ from django.shortcuts import get_object_or_404
 from datetime import date, datetime
 
 
-from .models import MentorExerciseSubmission
+from .models import MentorReportSubmission
 from .models import StudentReport
 
-from .serializers import ReportSubmissionMentorSerializer, ReportSubmissionDetailMentorSerializer, ReportSubmissionCreateMentorSerializer, ReportSubmissionUpdateMentorSerializer ,ReportStudentSerializer
+from .serializers import ReportSubmissionMentorSerializer, ReportSubmissionDetailMentorSerializer, ReportSubmissionCreateMentorSerializer,ReportSubmissionUpdateMentorSerializer ,ReportStudentSerializer
 
 
 class ReportSubmissionList(APIView):
     def get(self, request):
-        submissions = MentorExerciseSubmission.objects.all()
+        submissions = MentorReportSubmission.objects.all()
         serializer = ReportSubmissionMentorSerializer(submissions, many=True)
         return Response(serializer.data)
 
@@ -29,17 +29,37 @@ class ReportSubmissionList(APIView):
 
 class ReportSubmissionDetail(APIView):
     def get(self, request, pk):
-        submission = get_object_or_404(MentorExerciseSubmission, pk=pk)
+        submission = get_object_or_404(MentorReportSubmission, pk=pk)
         serializer = ReportSubmissionDetailMentorSerializer(submission)
         return Response(serializer.data)
 
     def put(self, request, pk):
-        submission = get_object_or_404(MentorExerciseSubmission, pk=pk)
+        submission = get_object_or_404(MentorReportSubmission, pk=pk)
         serializer = ReportSubmissionUpdateMentorSerializer(submission, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+    
+class SearchReportsMentor(APIView):
+    def get(self, request):
+        report_number = request.query_params.get('report_number')
+        date_str = request.query_params.get('date')
+        if report_number:
+            report = MentorReportSubmission.objects.filter(report_number=report_number).first()
+        elif date_str:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+            report = MentorReportSubmission.objects.filter(date=date_obj).first()
+        else:
+            report = None
+        if report:
+            serializer = ReportSubmissionMentorSerializer(report)
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'Report not found'}, status=404)
+
         
+
+
 #panel student
 class ReportListStudent(generics.ListCreateAPIView):
     queryset = StudentReport.objects.all()
