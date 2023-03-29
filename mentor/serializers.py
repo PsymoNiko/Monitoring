@@ -43,3 +43,12 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['is_superuser'] = user.is_superuser
         # ... any other fields you want to include
         return token
+
+
+class LoginViewAsMentorSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(allow_blank=True)
+    password = serializers.CharField(allow_blank=True, write_only=True)
+
+    class Meta:
+        model = Mentor
+        fields = ('username', 'password', 'first_name', 'last_name')
