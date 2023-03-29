@@ -10,11 +10,14 @@ from rest_framework.reverse import reverse
 
 from mentor.serializers import MentorSerializer
 from student.serializers import StudentSerializer
-from .serializers import LoginViewAsAdminSerializer
+from .serializers import LoginViewAsAdminSerializer, CourseSerializers
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.views import LogoutView
+
+from .models import Course
+
 
 class LoginViewAsAdmin(APIView):
 
@@ -106,6 +109,7 @@ class CustomRedirectView(TokenObtainPairView):
 
 class LogoutAPIView(LogoutView):
     next_page = reverse_lazy('login')
+
     def get_redirect_url(self):
         url = self.request.GET.get('next', self.next_page)
         return url
@@ -130,3 +134,18 @@ class LoginViews(APIView):
             return Response({'detail': 'Successfully logged in.'})
         else:
             return Response({'detail': 'Invalid credentials.'})
+
+
+class CourseCreateView(generics.CreateAPIView):
+    serializer_class = CourseSerializers
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    queryset = Course.objects.all()
+
+
+class CourseListView(generics.ListAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializers
+
+class CourseUpdateView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializers
