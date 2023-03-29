@@ -9,6 +9,19 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 # class MyUserManager(BaseUserManager):
 #     def create_user(self, ):
 
+class Course(models.Model):
+    HOLDING = (
+        ('Online', 'Online'),
+        ('In person', 'In person')
+    )
+
+    name = models.CharField(max_length=60)
+    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
+    start_at = models.DateField()
+    duration = models.PositiveSmallIntegerField(default=6)
+    class_time = models.TimeField()
+    how_to_hold = models.CharField(max_length=15, choices=HOLDING)
+    short_brief = models.CharField(max_length=70)
 
 
 class Admin(AbstractBaseUser, PermissionsMixin):
@@ -28,8 +41,6 @@ class Admin(AbstractBaseUser, PermissionsMixin):
         help_text='Specific permissions for this user',
         verbose_name='user_permissions',
     )
-
-
 
     def create_student_account(self, student_firstname, student_lastname,
                                student_phone_number, student_date_of_birth,
@@ -51,11 +62,9 @@ class Admin(AbstractBaseUser, PermissionsMixin):
                                          personality=student_personality, avatar=student_avatar)
         return student
 
-
-
     def create_mentor_account(self, mentor_firstname, mentor_lastname, mentor_date_of_birth,
-                             mentor_phone_number, mentor_identity_code, mentor_personality,
-                             mentor_avatar):
+                              mentor_phone_number, mentor_identity_code, mentor_personality,
+                              mentor_avatar):
         # Create a new User object with a unique username
         username = User.objects.create_user(username=f"mentor_{mentor_identity_code}")
 
