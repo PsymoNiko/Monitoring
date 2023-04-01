@@ -1,22 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-
-
-class Report(models.Model):
-    report_number = models.IntegerField(default=0)
-    report_text = models.TextField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    deadline = models.DateTimeField()
-    delayed = models.BooleanField(default=False)
-    study_amount = models.CharField(max_length=4)
-
-    def save(self, *args, **kwargs):
-        if self.created_at > self.deadline:
-            self.delayed = True
-        super().save(*args, **kwargs)
-
-
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.models import AbstractUser, AbstractBaseUser, PermissionsMixin
@@ -124,3 +107,18 @@ class StudentSettings(models.Model):
     installment_payment_due_date = models.BooleanField(default=False, editable=True)
     new_task = models.BooleanField(default=False, editable=True)
     new_message = models.BooleanField(default=False, editable=True)
+
+
+class Report(models.Model):
+    report_number = models.IntegerField(default=0)
+    report_text = models.TextField()
+    user = models.OneToOneField(Student, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    deadline = models.DateTimeField()
+    delayed = models.BooleanField(default=False)
+    study_amount = models.CharField(max_length=4)
+
+    # def save(self, *args, **kwargs):
+    #     if self.created_at > self.deadline:
+    #         self.delayed = True
+    #     super().save(*args, **kwargs)

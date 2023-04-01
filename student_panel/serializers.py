@@ -1,21 +1,7 @@
+from datetime import datetime
+
 from rest_framework import serializers
 from .models import Report
-
-
-class ReportSerializer(serializers.ModelSerializer):
-    delayed = serializers.BooleanField(read_only=True)
-    report_number = serializers.IntegerField(default=0)
-    report_text = serializers.CharField()
-    created_at = serializers.DateTimeField()
-    deadline = serializers.DateTimeField()
-    study_amount = serializers.CharField(max_length=4)
-
-    class Meta:
-        model = Report
-        fields = ('report_number', 'report_text', 'created_at', 'deadline', 'delayed', 'study_amount')
-
-
-from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from django.db import transaction
@@ -83,3 +69,43 @@ class LoginViewAsStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = ('username', 'password', 'first_name', 'last_name')
+
+
+class ReportSerializer(serializers.ModelSerializer):
+    report_number = serializers.IntegerField(default=0)
+    report_text = serializers.CharField(required=True)
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    created_at = serializers.DateTimeField(read_only=True)
+    deadline = serializers.DateTimeField(required=True)
+    delayed = serializers.BooleanField(read_only=True)
+    study_amount = serializers.CharField(max_length=4, required=True)
+
+    class Meta:
+        model = Report
+        fields = ('report_number', 'report_text', 'user',
+                  'created_at', 'deadline', 'delayed',
+                  'study_amount')
+        read_only_fields = ['id', 'delayed', 'created_at', 'user']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        student = Student.objects.get(user=user)
+        validated_data['user'] = student
+        validated_data['created_at'] = datetime.now()
+        report = super().create(validated_data)
+        return report    #
+    # def create(self, validated_data):
+    #     student_info = validated_data.pop("student")
+    #     student = Student.objects.create(**student_info)
+    #     report = Report.objects.create(student=student, **validated_data)
+    #     return report
+    # def create(self, validated_data):
+    #     if "student" in validated_data:
+    #         student_info = validated_data.pop("student")
+    #         student = Student.objects.create(**student_info)
+    #     else:
+    #         student = None
+    #
+    #     validated_data["created_at"] = datetime.now()
+    #     report = Report.objects.create(student=student, **validated_data)
+    #     return report

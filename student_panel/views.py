@@ -1,6 +1,7 @@
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics
 from django.db.models import F
 from django.db.models import Sum
 import requests
@@ -14,6 +15,17 @@ from .tasks import (
     average_of_amount_of_report
 )
 from .models import Report
+from rest_framework import authentication, permissions, generics
+
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.contrib.auth import authenticate, login
+
+from .models import Student
+from admin_panel.models import Admin
+from .serializers import StudentSerializer, StudentTokenObtainPairSerializer, LoginViewAsStudentSerializer
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -21,13 +33,25 @@ from rest_framework import status
 from datetime import datetime
 
 
-class DailyReportView(APIView):
-    def post(self, request):
-        serializer = ReportSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class DailyReportView(generics.CreateAPIView):
+    serializer_class = ReportSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        report = serializer.create(serializer.validated_data)
+        return Response({
+            'message': "Report Created successfully",
+            'data': serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+    # def post(self, request):
+    #     serializer = ReportSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save(user=request.user)
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UnsubmittedReportsView(APIView):
@@ -74,24 +98,6 @@ class ReportView(APIView):
         sum_of_report.apply_async(args="amount")
         punishment_for_fraction_of_hour.apply_async(args="amount")
         average_of_amount_of_report.apply_async(args="amount")
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status, authentication, permissions, generics
-
-from rest_framework_simplejwt.views import TokenObtainPairView
-
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.contrib.auth import authenticate, login
-
-from .models import Student
-from admin_panel.models import Admin
-from .serializers import StudentSerializer, StudentTokenObtainPairSerializer, LoginViewAsStudentSerializer
-
-from django.shortcuts import redirect
-from rest_framework.authtoken.models import Token
 
 
 class CreateStudentView(APIView):
