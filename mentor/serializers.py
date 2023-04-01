@@ -16,6 +16,8 @@ class MentorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mentor
         fields = ('first_name', 'last_name', 'date_of_birth', 'phone_number', 'identity_code', 'personality', 'avatar')
+        read_only_fields = ['id', 'first_name', 'last_name', 'date_of_birth', 'identity_code'
+                            'personality']
 
     def create(self, validated_data):
         username = f"mentor_{validated_data['phone_number']}"
@@ -31,6 +33,31 @@ class MentorSerializer(serializers.ModelSerializer):
         if Mentor.objects.filter(phone_number=value).exists():
             raise serializers.ValidationError("A mentor with this phone_number is exist")
         return value
+
+
+    def update(self, instance, validated_data):
+        # Remove the fields from the validated data
+        validated_data.pop('id')
+        validated_data.pop('first_name')
+        validated_data.pop('last_name')
+        validated_data.pop('date_of_birth')
+        validated_data.pop('identity_code')
+        validated_data.pop('personality')
+
+        if 'phone_number' in validated_data:
+            instance.phone_number = validated_data['phone_number']
+            validated_data.pop('phone_number')
+
+        if 'avatar' in validated_data:
+            instance.avatar = validated_data['avatar']
+            validated_data.pop('avatar')
+
+        return super().update(instance, validated_data)
+        #
+        # instance.phone_number = validated_data.get("phone_number", instance.phone_number)
+        # instance.avatar = validated_data.get("avatar", instance.avatar)
+        # instance.save()
+        # return instance
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -51,4 +78,4 @@ class LoginViewAsMentorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mentor
-        fields = ('username', 'password', 'first_name', 'last_name')
+        fields = ('username', 'password')

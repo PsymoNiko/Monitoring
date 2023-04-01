@@ -10,11 +10,12 @@ from django.contrib.auth import authenticate, login
 
 from .models import Student
 from ceo.models import Admin
-from .serializers import StudentSerializer, StudentTokenObtainPairSerializer, LoginViewAsStudentSerializer
-
+from .serializers import StudentSerializer, StudentTokenObtainPairSerializer,\
+    LoginViewAsStudentSerializer, ReportSerializer
 
 from django.shortcuts import redirect
 from rest_framework.authtoken.models import Token
+
 
 class CreateStudentView(APIView):
     @method_decorator(login_required)
@@ -49,10 +50,9 @@ class StudentLoginView(TokenObtainPairView):
     serializer_class = StudentTokenObtainPairSerializer
 
 
-
-class LoginViewAsStudent(APIView):
-
-    def post(self, request):
+class LoginViewAsStudent(generics.CreateAPIView):
+    serializer_class = LoginViewAsStudentSerializer
+    def create(self, request, *args, **kwargs):
         # Get the username and password from the request data
         username = request.data.get('username')
         password = request.data.get('password')
@@ -64,13 +64,14 @@ class LoginViewAsStudent(APIView):
         if student is not None:
             # Log the user in using Django's built-in function
             login(request, student)
+            return Response(self.get_serializer(student).data, status=status.HTTP_200_OK)
 
-            serializer = LoginViewAsStudentSerializer(student)
+            # serializer = LoginViewAsStudentSerializer(student)
             # token, _ = Token.objects.get_or_create(user=student)
 
             # return redirect('detail', pk=student.pk)
-        # else:
-        #     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            # else:
+            #     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
             # Return a success response with the user's information
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -89,7 +90,8 @@ class StudentDetails(APIView):
         serializer = StudentSerializer(request.user)
         return Response(serializer.data)
 
-class StudentDetailView(generics.RetrieveAPIView):
+
+class StudentDetailView(generics.RetrieveDestroyAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
 
@@ -97,6 +99,18 @@ class StudentDetailView(generics.RetrieveAPIView):
         user_id = self.request.user.id
         return Student.objects.get(user=user_id)
 
-
-
 # {"username": "student_09109232094", "password": "0020064586"}
+
+
+class DailyReportView(generics.CreateAPIView):
+    serializer_class = ReportSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        report = serializer.create(serializer.validated_data)
+        return Response({
+            'message': "Report Created successfully",
+            'data': serializer.data
+        }, status=status.HTTP_201_CREATED)

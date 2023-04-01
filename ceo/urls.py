@@ -4,7 +4,7 @@ from django.contrib.auth.views import LogoutView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import LoginViewAsAdmin, MentorCreateView, StudentCreateView, CustomRedirectView, LogoutAPIView, \
-    LoginViews, ApiRootView, CourseCreateView, CourseListView, CourseUpdateView
+    LoginViews, ApiRootView, CourseCreateView, CourseListView, CourseRetrieveUpdateDeleteView
 from .authentication import ObtainTokenPairView
 
 # from django.urls import reverse
@@ -20,7 +20,7 @@ urlpatterns = [
     # Course Api
     path('create-course/', CourseCreateView.as_view()),
     path('course/', CourseListView.as_view()),
-    path('course/<int:pk>/', CourseUpdateView.as_view(), name='course-detail'),
+    path('course/<int:pk>/', CourseRetrieveUpdateDeleteView.as_view(), name='course-detail'),
 
     path('api/token/', ObtainTokenPairView.as_view(), name='token-obtain-pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='refresh-token'),
