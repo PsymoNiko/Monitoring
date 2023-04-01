@@ -14,7 +14,7 @@ class LoginViewAsAdminSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'password', 'email', 'first_name', 'last_name')
+        fields = ('username', 'password', 'email')
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):

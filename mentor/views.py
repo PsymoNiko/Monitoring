@@ -18,9 +18,9 @@ from ceo.models import Admin
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 
-class LoginViewAsMentor(APIView):
-
-    def post(self, request):
+class LoginViewAsMentor(generics.CreateAPIView):
+    serializer_class = LoginViewAsMentorSerializer
+    def create(self, request, *args, **kwargs):
         # Get the username and password from the request data
         username = request.data.get('username')
         password = request.data.get('password')
@@ -33,16 +33,16 @@ class LoginViewAsMentor(APIView):
             # Log the user in using Django's built-in function
             login(request, mentor)
 
-            serializer = LoginViewAsMentorSerializer(mentor)
+            # serializer = LoginViewAsMentorSerializer(mentor)
 
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
+            # return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(self.get_serializer(mentor).data, status=status.HTTP_200_OK)
         else:
             # Return an error response if authentication failed
             return Response({"error": "Invalid username  or password"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class MentorDetailView(generics.RetrieveAPIView):
+class MentorDetailView(generics.RetrieveUpdateAPIView):
     queryset = Mentor.objects.all()
     serializer_class = MentorSerializer
 

@@ -19,9 +19,9 @@ from django.contrib.auth.views import LogoutView
 from .models import Course
 
 
-class LoginViewAsAdmin(APIView):
-
-    def post(self, request):
+class LoginViewAsAdmin(generics.CreateAPIView):
+    serializer_class = LoginViewAsAdminSerializer
+    def create(self, request, *args, **kwargs):
         # Get the username and password from the request data
         username = request.data.get('username')
         password = request.data.get('password')
@@ -34,10 +34,11 @@ class LoginViewAsAdmin(APIView):
             # Log the user in using Django's built-in function
             login(request, user)
 
-            serializer = LoginViewAsAdminSerializer(user)
 
+            # serializer = LoginViewAsAdminSerializer(user)
+            return Response(self.get_serializer(user).data, status=status.HTTP_200_OK)
             # Return a success response with the user's information
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # return Response(serializer.data, status=status.HTTP_200_OK)
 
             # return Response({
             #     'id': user.id,
@@ -146,6 +147,6 @@ class CourseListView(generics.ListAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializers
 
-class CourseUpdateView(generics.RetrieveUpdateDestroyAPIView):
+class CourseRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializers
