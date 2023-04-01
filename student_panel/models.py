@@ -3,25 +3,25 @@ from django.contrib.auth.models import User
 
 
 class Report(models.Model):
-    report_number = models.IntegerField()
+    report_number = models.IntegerField(default=0)
     report_text = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     deadline = models.DateTimeField()
     delayed = models.BooleanField(default=False)
-    study_amount = models.CharField(max_length=2)
+    study_amount = models.CharField(max_length=4)
 
-    # def save(self, *args, **kwargs):
-    #     if self.created_at > self.deadline:
-    #         self.delayed = True
-    #     super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if self.created_at > self.deadline:
+            self.delayed = True
+        super().save(*args, **kwargs)
 
 
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.models import AbstractUser, AbstractBaseUser, PermissionsMixin
 
-from mentor.models import Mentor
+from mentor_panel.models import Mentor
 
 from django.contrib.auth.models import UserManager
 
@@ -80,7 +80,7 @@ class Student(models.Model):
     date_of_birth = models.DateField()
     identity_code = models.CharField(max_length=15, unique=True)
     personality = models.CharField(max_length=4, choices=PERSONALITIES)
-    avatar = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+    # avatar = models.ImageField(upload_to='profile_images/', blank=True, null=True)
 
     # objects = CustomUserManager()
 

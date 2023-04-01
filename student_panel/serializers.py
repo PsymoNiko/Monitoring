@@ -4,10 +4,15 @@ from .models import Report
 
 class ReportSerializer(serializers.ModelSerializer):
     delayed = serializers.BooleanField(read_only=True)
+    report_number = serializers.IntegerField(default=0)
+    report_text = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    deadline = serializers.DateTimeField()
+    study_amount = serializers.CharField(max_length=4)
 
     class Meta:
         model = Report
-        fields = '__all__'
+        fields = ('report_number', 'report_text', 'created_at', 'deadline', 'delayed', 'study_amount')
 
 
 from rest_framework import serializers
@@ -18,7 +23,7 @@ from django.db import transaction
 from django.contrib.auth.models import User
 
 from .models import Student
-from mentor.models import Mentor
+from mentor_panel.models import Mentor
 
 
 class StudentSerializer(serializers.ModelSerializer):

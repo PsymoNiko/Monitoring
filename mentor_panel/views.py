@@ -20,7 +20,7 @@ import requests
 
 from .serializers import MentorSerializer, MyTokenObtainPairSerializer, LoginViewAsMentorSerializer
 from .models import Mentor
-from Monitoring.admin_panel.models import Admin
+from admin_panel.models import Admin
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 

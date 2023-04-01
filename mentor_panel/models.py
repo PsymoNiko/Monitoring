@@ -25,7 +25,7 @@ class Mentor(models.Model):
         ('ISTP', 'چیره دست'), ('ISFP', 'ماجراجو'), ('ESTP', 'کارآفرین'), ('ESFP', 'سرگرم کننده'),
     )
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
     # password = models.CharField(max_length=128)
@@ -33,7 +33,7 @@ class Mentor(models.Model):
     phone_number = models.CharField(max_length=13, editable=True, unique=True)
     identity_code = models.CharField(max_length=10, unique=True)
     personality = models.CharField(max_length=15, choices=PERSONALITIES)
-    avatar = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+    # avatar = models.ImageField(upload_to='profile_images/', blank=True, null=True)
 
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'date_of_birth', 'phone_number', 'personality']

@@ -87,7 +87,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login
 
 from .models import Student
-from ceo.models import Admin
+from admin_panel.models import Admin
 from .serializers import StudentSerializer, StudentTokenObtainPairSerializer, LoginViewAsStudentSerializer
 
 from django.shortcuts import redirect

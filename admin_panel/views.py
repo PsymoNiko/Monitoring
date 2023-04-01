@@ -8,8 +8,8 @@ from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.reverse import reverse
 
-from mentor.serializers import MentorSerializer
-from student.serializers import StudentSerializer
+from mentor_panel.serializers import MentorSerializer
+from student_panel.serializers import StudentSerializer
 from .serializers import LoginViewAsAdminSerializer, CourseSerializers
 
 from rest_framework_simplejwt.views import TokenObtainPairView

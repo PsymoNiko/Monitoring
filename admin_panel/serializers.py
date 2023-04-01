@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from django.contrib.auth.models import User
 from .models import Course
-from mentor.models import Mentor
+from mentor_panel.models import Mentor
 
 
 class LoginViewAsAdminSerializer(serializers.ModelSerializer):
