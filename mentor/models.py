@@ -34,4 +34,4 @@ class Mentor(models.Model):
     REQUIRED_FIELDS = ['first_name', 'last_name', 'date_of_birth', 'phone_number', 'personality']
 
     def __str__(self):
-        return f"{self.id}-{self.first_name} {self.last_name}"
+        return f"{self.id} - {self.first_name} {self.last_name}"

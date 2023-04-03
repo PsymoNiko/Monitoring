@@ -6,12 +6,13 @@ from django.contrib.auth.models import User
 
 from datetime import datetime
 
-from .models import Student, Report
+from .models import Student, Report, Payment
 from mentor.models import Mentor
+from ceo.models import Course
 
 
 class StudentSerializer(serializers.ModelSerializer):
-    mentor = serializers.PrimaryKeyRelatedField(queryset=Mentor.objects.all())
+    course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all())
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     date_of_birth = serializers.DateField(required=True)
@@ -24,7 +25,7 @@ class StudentSerializer(serializers.ModelSerializer):
     # password = identity_code
     class Meta:
         model = Student
-        fields = ('mentor', 'first_name', 'last_name', 'date_of_birth', 'phone_number', 'identity_code',
+        fields = ('course', 'first_name', 'last_name', 'date_of_birth', 'phone_number', 'identity_code',
                   'personality', 'avatar')
 
     @transaction.atomic()
@@ -98,3 +99,9 @@ class ReportSerializer(serializers.ModelSerializer):
         validated_data['created_at'] = datetime.now()
         report = super().create(validated_data)
         return report
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = '__all__'

@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.models import AbstractUser, AbstractBaseUser, PermissionsMixin
 
 from mentor.models import Mentor
+from ceo.models import Course
 
 from django.contrib.auth.models import UserManager
 
@@ -54,7 +55,7 @@ class Student(models.Model):
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
-    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='student_course')
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
     phone_number = models.CharField(max_length=13, unique=True)
@@ -115,3 +116,10 @@ class Report(models.Model):
     deadline = models.DateTimeField()
     delayed = models.BooleanField(default=False)
     study_amount = models.CharField(max_length=4)
+
+
+class Payment(models.Model):
+    user = models.ForeignKey(Student, on_delete=models.CASCADE)
+    month_number = models.IntegerField()
+    receipt = models.ImageField(upload_to='receipt_images/')
+    status = models.CharField(max_length=20, default='pending')
