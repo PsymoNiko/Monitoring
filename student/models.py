@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.models import AbstractUser, AbstractBaseUser, PermissionsMixin
 
 from mentor.models import Mentor
+from ceo.models import Course
 
 from django.contrib.auth.models import UserManager
 
@@ -45,17 +46,16 @@ from django.contrib.auth.models import UserManager
 #     )
 
 
-
 class Student(models.Model):
     PERSONALITIES = (
-        ('INTP', 'منطق دان'), ('INTJ', 'معمار'), ('ENTJ', 'فرمانده'), ('ENTP', 'مجادله گر'),
-        ('INFJ', 'حامی'), ('INFP', 'میانجی'), ('ENFJ', 'قهرمان'), ('ENFP', 'پیکارگر'),
-        ('ISTJ', 'تدارکاتچی'), ('ISFJ', 'مدافع'), ('ESTJ', 'مجری'), ('ESFJ', 'سفیر'),
-        ('ISTP', 'چیره دست'), ('ISFP', 'ماجراجو'), ('ESTP', 'کارآفرین'), ('ESFP', 'سرگرم کننده'),
+        ('INTP', 'INTP'), ('INTJ', 'INTJ'), ('ENTJ', 'ENTJ'), ('ENTP', 'ENTP'),
+        ('INFJ', 'INFJ'), ('INFP', 'INFP'), ('ENFJ', 'ENFJ'), ('ENFP', 'ENFP'),
+        ('ISTJ', 'ISTJ'), ('ISFJ', 'ISFJ'), ('ESTJ', 'ESTJ'), ('ESFJ', 'ESFJ'),
+        ('ISTP', 'ISTP'), ('ISFP', 'ISFP'), ('ESTP', 'ESTP'), ('ESFP', 'ESFP'),
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
-    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='student_course')
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
     phone_number = models.CharField(max_length=13, unique=True)
@@ -64,14 +64,10 @@ class Student(models.Model):
     personality = models.CharField(max_length=4, choices=PERSONALITIES)
     avatar = models.ImageField(upload_to='profile_images/', blank=True, null=True)
 
-
-
     # objects = CustomUserManager()
-
 
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['mentor', 'first_name', 'last_name', 'date_of_birth', 'phone_number', 'personality']
-
 
     # def save(self, *args, **kwargs):
     #     # Check if this is a new student account is being created
@@ -110,3 +106,20 @@ class StudentSettings(models.Model):
     installment_payment_due_date = models.BooleanField(default=False, editable=True)
     new_task = models.BooleanField(default=False, editable=True)
     new_message = models.BooleanField(default=False, editable=True)
+
+
+class Report(models.Model):
+    report_number = models.IntegerField(default=0)
+    report_text = models.TextField()
+    user = models.OneToOneField(Student, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    deadline = models.DateTimeField()
+    delayed = models.BooleanField(default=False)
+    study_amount = models.CharField(max_length=4)
+
+
+class Payment(models.Model):
+    user = models.ForeignKey(Student, on_delete=models.CASCADE)
+    month_number = models.IntegerField()
+    receipt = models.ImageField(upload_to='receipt_images/')
+    status = models.CharField(max_length=20, default='pending')

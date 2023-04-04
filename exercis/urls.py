@@ -3,11 +3,14 @@ from .views import studentExerciseCreate, studentExerciseDetail, studentExercise
 
 
 urlpatterns = [
-    path('exercises/', studentExerciseCreate.as_view(), name='exercises_create'),
-    path('exercises/list/', studentExerciseList.as_view(), name='exercises_list'),
+    #mentor
+    path('exercises/send-mentor/', MentorPanelPost.as_view(), name='send_mentor'),
+    path('exercises/get-mentor/', MentorPanelGet.as_view(), name='get_mentor'),
+
+    #student
+    path('exercises/send-student', studentExerciseCreate.as_view(), name='exercises_create'),
+    path('exercises/get-student/', studentExerciseList.as_view(), name='exercises_list'),
     path('exercises/<int:pk>/', studentExerciseDetail.as_view(), name='exercises_detail'),
-    path('exercises/getmentor/', MentorPanelGet.as_view(), name='get_mentor'),
-    path('exercises/sendmentor/', MentorPanelPost.as_view(), name='send_mentor'),
 
 
 ]

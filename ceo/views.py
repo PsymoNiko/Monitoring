@@ -10,15 +10,18 @@ from rest_framework.reverse import reverse
 
 from mentor.serializers import MentorSerializer
 from student.serializers import StudentSerializer
-from .serializers import LoginViewAsAdminSerializer
+from .serializers import LoginViewAsAdminSerializer, CourseSerializers
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.views import LogoutView
 
-class LoginViewAsAdmin(APIView):
+from .models import Course
 
-    def post(self, request):
+
+class LoginViewAsAdmin(generics.CreateAPIView):
+    serializer_class = LoginViewAsAdminSerializer
+    def create(self, request, *args, **kwargs):
         # Get the username and password from the request data
         username = request.data.get('username')
         password = request.data.get('password')
@@ -31,10 +34,11 @@ class LoginViewAsAdmin(APIView):
             # Log the user in using Django's built-in function
             login(request, user)
 
-            serializer = LoginViewAsAdminSerializer(user)
 
+            # serializer = LoginViewAsAdminSerializer(user)
+            return Response(self.get_serializer(user).data, status=status.HTTP_200_OK)
             # Return a success response with the user's information
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # return Response(serializer.data, status=status.HTTP_200_OK)
 
             # return Response({
             #     'id': user.id,
@@ -106,6 +110,7 @@ class CustomRedirectView(TokenObtainPairView):
 
 class LogoutAPIView(LogoutView):
     next_page = reverse_lazy('login')
+
     def get_redirect_url(self):
         url = self.request.GET.get('next', self.next_page)
         return url
@@ -130,3 +135,18 @@ class LoginViews(APIView):
             return Response({'detail': 'Successfully logged in.'})
         else:
             return Response({'detail': 'Invalid credentials.'})
+
+
+class CourseCreateView(generics.CreateAPIView):
+    serializer_class = CourseSerializers
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    queryset = Course.objects.all()
+
+
+class CourseListView(generics.ListAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializers
+
+class CourseRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializers

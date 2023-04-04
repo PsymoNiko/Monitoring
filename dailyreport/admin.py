@@ -1,3 +1,7 @@
 from django.contrib import admin
+from dailyreport.models import MentorReportSubmission, StudentReport
 
-# Register your models here.
+
+admin.site.register(MentorReportSubmission)
+admin.site.register(StudentReport)
+

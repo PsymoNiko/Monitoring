@@ -6,58 +6,74 @@ from rest_framework import generics
 
 from django.shortcuts import get_object_or_404
 from datetime import date, datetime
+from django.http import Http404
+
 
 
 from .models import MentorReportSubmission
 from .models import StudentReport
 
-from .serializers import ReportSubmissionMentorSerializer, ReportSubmissionDetailMentorSerializer, ReportSubmissionCreateMentorSerializer,ReportSubmissionUpdateMentorSerializer ,ReportStudentSerializer
+# from .serializers import ReportSubmissionMentorSerializer, ReportSubmissionDetailMentorSerializer, ReportSubmissionCreateMentorSerializer,ReportSubmissionUpdateMentorSerializer ,ReportStudentSerializer
+from .serializers import MentorReportSubmissionSerializer, ReportSubmissionUpdateMentorSerializer, MentorReportSubmissionSerializer,ReportStudentSerializer
 
 
-class ReportSubmissionList(APIView):
+
+class MentorReportSubmissionList(APIView):
+    """
+    List all report submissions or create a new one
+    """
     def get(self, request):
-        submissions = MentorReportSubmission.objects.all()
-        serializer = ReportSubmissionMentorSerializer(submissions, many=True)
-        return Response(serializer.data)
+        reports = MentorReportSubmission.objects.all()
+        serializer = MentorReportSubmissionSerializer(reports, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        serializer = ReportSubmissionCreateMentorSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
 
-class ReportSubmissionDetail(APIView):
+class MentorReportSubmissionDetail(APIView):
+    """
+    Retrieve, update or delete a report submission instance.
+    """
+    def get_object(self, pk):
+        try:
+            return MentorReportSubmission.objects.get(pk=pk)
+        except MentorReportSubmission.DoesNotExist:
+            raise Http404
+
     def get(self, request, pk):
-        submission = get_object_or_404(MentorReportSubmission, pk=pk)
-        serializer = ReportSubmissionDetailMentorSerializer(submission)
+        report = self.get_object(pk)
+        serializer = MentorReportSubmissionSerializer(report)
         return Response(serializer.data)
-
+    
+# can send comment for student
     def put(self, request, pk):
-        submission = get_object_or_404(MentorReportSubmission, pk=pk)
-        serializer = ReportSubmissionUpdateMentorSerializer(submission, data=request.data)
+        report = self.get_object(pk)
+        serializer = ReportSubmissionUpdateMentorSerializer(report, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-    
-class SearchReportsMentor(APIView):
+        
+
+    def delete(self, request, pk):
+        report = self.get_object(pk)
+        report.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MentorReportSubmissionSearch(APIView):
+    """
+    Search for a report submission based on the report number or the date
+    """
     def get(self, request):
         report_number = request.query_params.get('report_number')
         date_str = request.query_params.get('date')
         if report_number:
-            report = MentorReportSubmission.objects.filter(report_number=report_number).first()
+            reports = MentorReportSubmission.objects.filter(report_number=report_number)
         elif date_str:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-            report = MentorReportSubmission.objects.filter(date=date_obj).first()
+            reports = MentorReportSubmission.objects.filter(date=date_obj)
         else:
-            report = None
-        if report:
-            serializer = ReportSubmissionMentorSerializer(report)
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'Report not found'}, status=404)
-
-        
+            reports = MentorReportSubmission.objects.none()
+        serializer = MentorReportSubmissionSerializer(reports, many=True)
+        return Response(serializer.data)
 
 
 #panel student
