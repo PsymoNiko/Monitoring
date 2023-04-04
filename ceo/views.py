@@ -9,6 +9,8 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.reverse import reverse
 
 from mentor.serializers import MentorSerializer
+from mentor.models import Mentor
+from student.models import Student
 from student.serializers import StudentSerializer
 from .serializers import LoginViewAsAdminSerializer, CourseSerializers
 
@@ -21,34 +23,23 @@ from .models import Course
 
 class LoginViewAsAdmin(generics.CreateAPIView):
     serializer_class = LoginViewAsAdminSerializer
+
     def create(self, request, *args, **kwargs):
         # Get the username and password from the request data
         username = request.data.get('username')
         password = request.data.get('password')
 
-        # Authenticate the user using Django's built-in function
         user = authenticate(request, username=username, password=password)
 
-        # Check if authentication was using
         if user is not None:
-            # Log the user in using Django's built-in function
-            login(request, user)
 
+            login(request, user)
 
             # serializer = LoginViewAsAdminSerializer(user)
             return Response(self.get_serializer(user).data, status=status.HTTP_200_OK)
-            # Return a success response with the user's information
-            # return Response(serializer.data, status=status.HTTP_200_OK)
 
-            # return Response({
-            #     'id': user.id,
-            #     'username': user.username,
-            #     'email': user.email,
-            #     'first_name': user.first_name,
-            #     'last_name': user.last_name,
-            # }, status=status.HTTP_200_OK)
         else:
-            # Return an error response if authentication failed
+
             return Response({"error": "Invalid username  or password"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -81,6 +72,9 @@ class MentorCreateView(generics.CreateAPIView):
             'data': serializer.data
         }, status=status.HTTP_201_CREATED)
 
+    def get_queryset(self):
+        return Mentor.objects.all()
+
 
 class StudentCreateView(generics.CreateAPIView):
     serializer_class = StudentSerializer
@@ -106,6 +100,9 @@ class CustomRedirectView(TokenObtainPairView):
             request.session['auth_token'] = token
             return HttpResponseRedirect('/ceo/roots/')  # Replace with the URL you want to redirect to
         return response
+
+    def get_queryset(self):
+        return Student.objects.all()
 
 
 class LogoutAPIView(LogoutView):
@@ -146,6 +143,7 @@ class CourseCreateView(generics.CreateAPIView):
 class CourseListView(generics.ListAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializers
+
 
 class CourseRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
