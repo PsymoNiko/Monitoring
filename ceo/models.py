@@ -3,11 +3,8 @@ from django.contrib.auth.models import User, Group, Permission
 
 from mentor.models import Mentor
 
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
-
-# class MyUserManager(BaseUserManager):
-#     def create_user(self, ):
 
 class Course(models.Model):
     HOLDING = (
@@ -23,10 +20,8 @@ class Course(models.Model):
     how_to_hold = models.CharField(max_length=15, choices=HOLDING)
     short_brief = models.CharField(max_length=70)
 
-
     def __str__(self):
         return self.name
-
 
 # class Admin(AbstractBaseUser, PermissionsMixin):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')

@@ -73,7 +73,7 @@ class LoginViewAsStudent(generics.CreateAPIView):
             # else:
             #     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
             # Return a success response with the user's information
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 

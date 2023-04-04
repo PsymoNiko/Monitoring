@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, get_user_model
 
 from .models import Mentor
 
+
 class CustomAuthentication(BaseAuthentication):
     def authenticate(self, request):
         username = request.data.get('username')
