@@ -7,16 +7,16 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.reverse import reverse
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from mentor_panel.serializers import MentorSerializer
 from student_panel.serializers import StudentSerializer
-from .serializers import LoginViewAsAdminSerializer, CourseSerializers, StudentLeaveSerializer
-
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import (LoginViewAsAdminSerializer, CourseSerializers,
+                          StudentLeaveSerializer, LeaveDurationSerializer)
+from .models import Course, StudentLeaveModel, LeaveDurationModel
+from .tasks import leave_duration_left
 from django.contrib.auth.views import LogoutView
-
-from .models import Course, StudentLeaveModel
 
 
 class LoginViewAsAdmin(APIView):
@@ -156,3 +156,18 @@ class CreateLeaveStudent(generics.CreateAPIView):
     serializer_class = StudentLeaveSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
     queryset = StudentLeaveModel.objects.all()
+
+
+class SetDurationOfStudentLeave(generics.CreateAPIView):
+    serializer_class = LeaveDurationSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    queryset = LeaveDurationModel.objects.all()
+
+
+class RetrieveAndUpdateLeaveDurationLeft(generics.RetrieveUpdateAPIView):
+    queryset = LeaveDurationModel.objects.all()
+    serializer_class = LeaveDurationSerializer
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        leave_duration_left.delay(instance.pk)

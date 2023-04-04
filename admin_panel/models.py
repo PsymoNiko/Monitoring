@@ -87,7 +87,14 @@ class StudentLeaveModel(models.Model):
     date_of_leave = models.DateField()
     leave_period = models.PositiveSmallIntegerField()
     reason = models.CharField(max_length=10, choices=JUSTIFICATION)
-    leave_time = models.CharField(max_length=4)
+    created_at = models.DateField(auto_now_add=True)
+    modified_at = models.DateField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+
+
+class LeaveDurationModel(models.Model):
+    student = models.OneToOneField(Student, on_delete=models.CASCADE)
+    leave_duration = models.CharField(max_length=4)
     created_at = models.DateField(auto_now_add=True)
     modified_at = models.DateField(auto_now=True)
     is_deleted = models.BooleanField(default=False)

@@ -4,7 +4,8 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import LoginViewAsAdmin, MentorCreateView, StudentCreateView, CustomRedirectView, LogoutAPIView, \
-    LoginViews, ApiRootView, CourseCreateView, CourseListView, CourseUpdateView, CreateLeaveStudent
+    LoginViews, ApiRootView, CourseCreateView, CourseListView, CourseUpdateView, CreateLeaveStudent, \
+    SetDurationOfStudentLeave, RetrieveAndUpdateLeaveDurationLeft
 from .authentication import ObtainTokenPairView
 
 # from django.urls import reverse
@@ -30,5 +31,7 @@ urlpatterns = [
     # path('logout/', LogoutView.as_view(), name='logout')
     path('logout/', LogoutAPIView.as_view(), name='logout'),
     path('login2/', LoginViews.as_view()),
-    path('leave/', CreateLeaveStudent.as_view(), name="leave")
+    path('leave/', CreateLeaveStudent.as_view(), name="leave"),
+    path('set-leave-time/', SetDurationOfStudentLeave.as_view(), name="set-leave-time"),
+    path('leave_left/<int:pk>/', RetrieveAndUpdateLeaveDurationLeft.as_view(), name="leave-left")
 ]
