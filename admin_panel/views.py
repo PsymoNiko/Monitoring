@@ -10,13 +10,13 @@ from rest_framework.reverse import reverse
 
 from mentor_panel.serializers import MentorSerializer
 from student_panel.serializers import StudentSerializer
-from .serializers import LoginViewAsAdminSerializer, CourseSerializers
+from .serializers import LoginViewAsAdminSerializer, CourseSerializers, StudentLeaveSerializer
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.views import LogoutView
 
-from .models import Course
+from .models import Course, StudentLeaveModel
 
 
 class LoginViewAsAdmin(APIView):
@@ -146,6 +146,13 @@ class CourseListView(generics.ListAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializers
 
+
 class CourseUpdateView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializers
+
+
+class CreateLeaveStudent(generics.CreateAPIView):
+    serializer_class = StudentLeaveSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    queryset = StudentLeaveModel.objects.all()

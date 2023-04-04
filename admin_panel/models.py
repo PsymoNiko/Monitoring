@@ -79,3 +79,15 @@ class Admin(AbstractBaseUser, PermissionsMixin):
                                        phone_number=mentor_phone_number, identity_code=mentor_identity_code,
                                        personality=mentor_personality, avatar=mentor_avatar)
         return mentor
+
+
+class StudentLeaveModel(models.Model):
+    JUSTIFICATION = (("موجه", "موجه"), ("غیرموجه", "غیرموجه"))
+    student = models.OneToOneField(Student, on_delete=models.CASCADE)
+    date_of_leave = models.DateField()
+    leave_period = models.PositiveSmallIntegerField()
+    reason = models.CharField(max_length=10, choices=JUSTIFICATION)
+    leave_time = models.CharField(max_length=4)
+    created_at = models.DateField(auto_now_add=True)
+    modified_at = models.DateField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)

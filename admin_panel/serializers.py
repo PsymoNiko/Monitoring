@@ -1,10 +1,7 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-
-from django.urls import reverse
-
 from django.contrib.auth.models import User
-from .models import Course
+from .models import Course, StudentLeaveModel
 from mentor_panel.models import Mentor
 
 
@@ -44,7 +41,6 @@ class CourseSerializers(serializers.ModelSerializer):
         fields = ('id', 'name', 'mentor', 'start_at', 'duration', 'class_time',
                   'how_to_hold', 'short_brief', 'url')
 
-
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
         instance.mentor = validated_data.get("mentor", instance.mentor)
@@ -55,3 +51,29 @@ class CourseSerializers(serializers.ModelSerializer):
         instance.short_brief = validated_data.get("short_brief", instance.short_brief)
         instance.save()
         return instance
+
+
+class StudentLeaveSerializer(serializers.ModelSerializer):
+    student = serializers.PrimaryKeyRelatedField(queryset=StudentLeaveModel.objects.all())
+    date_of_leave = serializers.DateField()
+    leave_period = serializers.IntegerField()
+    reason = serializers.ChoiceField(choices=StudentLeaveModel.JUSTIFICATION)
+    leave_time = serializers.CharField()
+    created_at = serializers.DateField(read_only=True)
+    modified_at = serializers.DateField(read_only=True)
+    is_deleted = serializers.BooleanField(default=False, read_only=True)
+
+    class Meta:
+        model = StudentLeaveModel
+        fields = [
+            'student', 'date_of_leave', 'leave_period', 'reason', 'leave_time', 'created_at',
+            'modified_at', 'is_deleted'
+        ]
+        read_only = ['created_at', 'modified_at', 'is_deleted']
+
+    def leave_time_validation(self, leave_time: str) -> str:
+        if not leave_time.isnumeric():
+            raise serializers.ValidationError("Please Enter a Valid amount")
+        return leave_time
+
+
