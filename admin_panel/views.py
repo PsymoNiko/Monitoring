@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate, login
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
+from .models import Course
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -12,42 +13,23 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from mentor_panel.serializers import MentorSerializer
 from student_panel.serializers import StudentSerializer
-from .serializers import (LoginViewAsAdminSerializer, CourseSerializers,
-                          StudentLeaveSerializer, LeaveDurationSerializer)
-from .models import Course, StudentLeaveModel, LeaveDurationModel
-from .tasks import leave_duration_left
-from django.contrib.auth.views import LogoutView
+from .serializers import (LoginViewAsAdminSerializer, CourseSerializers)
+                          # StudentLeaveSerializer, LeaveDurationSerializer)
+#, StudentLeaveModel, LeaveDurationModel
+# from .tasks import leave_duration_left
 
 
-class LoginViewAsAdmin(APIView):
+class LoginViewAsAdmin(generics.CreateAPIView):
+    serializer_class = LoginViewAsAdminSerializer
 
-    def post(self, request):
-        # Get the username and password from the request data
+    def create(self, request, *args, **kwargs):
         username = request.data.get('username')
         password = request.data.get('password')
-
-        # Authenticate the user using Django's built-in function
         user = authenticate(request, username=username, password=password)
-
-        # Check if authentication was using
         if user is not None:
-            # Log the user in using Django's built-in function
             login(request, user)
-
-            serializer = LoginViewAsAdminSerializer(user)
-
-            # Return a success response with the user's information
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-            # return Response({
-            #     'id': user.id,
-            #     'username': user.username,
-            #     'email': user.email,
-            #     'first_name': user.first_name,
-            #     'last_name': user.last_name,
-            # }, status=status.HTTP_200_OK)
+            return Response(self.get_serializer(user).data, status=status.HTTP_200_OK)
         else:
-            # Return an error response if authentication failed
             return Response({"error": "Invalid username  or password"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -101,18 +83,9 @@ class CustomRedirectView(TokenObtainPairView):
         response = super(CustomRedirectView, self).post(request, *args, **kwargs)
         token = response.data.get('access')
         if token:
-            # Set the token in the session
             request.session['auth_token'] = token
-            return HttpResponseRedirect('/ceo/roots/')  # Replace with the URL you want to redirect to
+            return HttpResponseRedirect('/ceo/roots/')
         return response
-
-
-class LogoutAPIView(LogoutView):
-    next_page = reverse_lazy('login')
-
-    def get_redirect_url(self):
-        url = self.request.GET.get('next', self.next_page)
-        return url
 
 
 class LoginViews(APIView):
@@ -147,27 +120,27 @@ class CourseListView(generics.ListAPIView):
     serializer_class = CourseSerializers
 
 
-class CourseUpdateView(generics.RetrieveUpdateDestroyAPIView):
+class CourseRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializers
 
 
-class CreateLeaveStudent(generics.CreateAPIView):
-    serializer_class = StudentLeaveSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
-    queryset = StudentLeaveModel.objects.all()
-
-
-class SetDurationOfStudentLeave(generics.CreateAPIView):
-    serializer_class = LeaveDurationSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
-    queryset = LeaveDurationModel.objects.all()
-
-
-class RetrieveAndUpdateLeaveDurationLeft(generics.RetrieveUpdateAPIView):
-    queryset = LeaveDurationModel.objects.all()
-    serializer_class = LeaveDurationSerializer
-
-    def perform_update(self, serializer):
-        instance = serializer.save()
-        leave_duration_left.delay(instance.pk)
+# class CreateLeaveStudent(generics.CreateAPIView):
+#     serializer_class = StudentLeaveSerializer
+#     permission_classes = [IsAuthenticated, IsAdminUser]
+#     queryset = StudentLeaveModel.objects.all()
+#
+#
+# class SetDurationOfStudentLeave(generics.CreateAPIView):
+#     serializer_class = LeaveDurationSerializer
+#     permission_classes = [IsAuthenticated, IsAdminUser]
+#     queryset = LeaveDurationModel.objects.all()
+#
+#
+# class RetrieveAndUpdateLeaveDurationLeft(generics.RetrieveUpdateAPIView):
+#     queryset = LeaveDurationModel.objects.all()
+#     serializer_class = LeaveDurationSerializer
+#
+#     def perform_update(self, serializer):
+#         instance = serializer.save()
+#         leave_duration_left.delay(instance.pk)

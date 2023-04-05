@@ -1,10 +1,11 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Course, StudentLeaveModel, LeaveDurationModel
+# from .models import Course, LeaveDurationModel, StudentLeaveModel
 from mentor_panel.models import Mentor
-
 from student_panel.models import Student
+
+from admin_panel.models import Course
 
 
 class LoginViewAsAdminSerializer(serializers.ModelSerializer):
@@ -13,7 +14,7 @@ class LoginViewAsAdminSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'password', 'email', 'first_name', 'last_name')
+        fields = ('username', 'password', 'email')
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -55,45 +56,45 @@ class CourseSerializers(serializers.ModelSerializer):
         return instance
 
 
-class StudentLeaveSerializer(serializers.ModelSerializer):
-    student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
-    date_of_leave = serializers.DateField()
-    leave_period = serializers.IntegerField()
-    reason = serializers.ChoiceField(choices=StudentLeaveModel.JUSTIFICATION)
-    created_at = serializers.DateField(read_only=True)
-    modified_at = serializers.DateField(read_only=True)
-    is_deleted = serializers.BooleanField(default=False)
-
-    class Meta:
-        model = StudentLeaveModel
-        fields = [
-            'student', 'date_of_leave', 'leave_period', 'reason', 'created_at',
-            'modified_at', 'is_deleted'
-        ]
-        read_only = ['created_at', 'modified_at', 'is_deleted']
-
-
-class LeaveDurationSerializer(serializers.ModelSerializer):
-    student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
-    leave_duration = serializers.CharField(max_length=4)
-    created_at = serializers.DateField(read_only=True)
-    modified_at = serializers.DateField(read_only=True)
-    is_deleted = serializers.BooleanField(default=False)
-
-    class Meta:
-        model = LeaveDurationModel
-        fields = [
-            'student', 'leave_duration', 'created_at',
-            'modified_at', 'is_deleted'
-        ]
-        read_only = ['created_at', 'modified_at', 'is_deleted']
-
-    def update(self, instance, validated_data):
-        instance.leave_duration = validated_data.get('leave_duration', instance.pk)
-        instance.save()
-        return instance
-
-    def leave_time_validation(self, leave_time: str) -> str:
-        if not leave_time.isnumeric():
-            raise serializers.ValidationError("Please Enter a Valid amount")
-        return leave_time
+# class StudentLeaveSerializer(serializers.ModelSerializer):
+#     student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
+#     date_of_leave = serializers.DateField()
+#     leave_period = serializers.IntegerField()
+#     reason = serializers.ChoiceField(choices=StudentLeaveModel.JUSTIFICATION)
+#     created_at = serializers.DateField(read_only=True)
+#     modified_at = serializers.DateField(read_only=True)
+#     is_deleted = serializers.BooleanField(default=False)
+#
+#     class Meta:
+#         model = StudentLeaveModel
+#         fields = [
+#             'student', 'date_of_leave', 'leave_period', 'reason', 'created_at',
+#             'modified_at', 'is_deleted'
+#         ]
+#         read_only = ['created_at', 'modified_at', 'is_deleted']
+#
+#
+# class LeaveDurationSerializer(serializers.ModelSerializer):
+#     student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
+#     leave_duration = serializers.CharField(max_length=4)
+#     created_at = serializers.DateField(read_only=True)
+#     modified_at = serializers.DateField(read_only=True)
+#     is_deleted = serializers.BooleanField(default=False)
+#
+#     class Meta:
+#         model = LeaveDurationModel
+#         fields = [
+#             'student', 'leave_duration', 'created_at',
+#             'modified_at', 'is_deleted'
+#         ]
+#         read_only = ['created_at', 'modified_at', 'is_deleted']
+#
+#     def update(self, instance, validated_data):
+#         instance.leave_duration = validated_data.get('leave_duration', instance.pk)
+#         instance.save()
+#         return instance
+#
+#     def leave_time_validation(self, leave_time: str) -> str:
+#         if not leave_time.isnumeric():
+#             raise serializers.ValidationError("Please Enter a Valid amount")
+#         return leave_time

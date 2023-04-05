@@ -1,13 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User, Group, Permission
-from student_panel.models import Student
+# from student_panel.models import Student
 from mentor_panel.models import Mentor
 
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
-
-# class MyUserManager(BaseUserManager):
-#     def create_user(self, ):
 
 class Course(models.Model):
     HOLDING = (
@@ -15,13 +12,16 @@ class Course(models.Model):
         ('In person', 'In person')
     )
 
-    name = models.CharField(max_length=60, null=True)
-    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
-    start_at = models.DateField(null=True)
+    name = models.CharField(max_length=60)
+    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE, related_name='mentor_of_course')
+    start_at = models.DateField()
     duration = models.PositiveSmallIntegerField(default=6)
-    class_time = models.TimeField(null=True)
-    how_to_hold = models.CharField(max_length=15, choices=HOLDING, null=True)
-    short_brief = models.CharField(max_length=70, null=True)
+    class_time = models.TimeField()
+    how_to_hold = models.CharField(max_length=15, choices=HOLDING)
+    short_brief = models.CharField(max_length=70)
+
+    def __str__(self):
+        return self.name
 
 
 class Admin(AbstractBaseUser, PermissionsMixin):
@@ -81,20 +81,20 @@ class Admin(AbstractBaseUser, PermissionsMixin):
         return mentor
 
 
-class StudentLeaveModel(models.Model):
-    JUSTIFICATION = (("موجه", "موجه"), ("غیرموجه", "غیرموجه"))
-    student = models.OneToOneField(Student, on_delete=models.CASCADE)
-    date_of_leave = models.DateField()
-    leave_period = models.PositiveSmallIntegerField()
-    reason = models.CharField(max_length=10, choices=JUSTIFICATION)
-    created_at = models.DateField(auto_now_add=True)
-    modified_at = models.DateField(auto_now=True)
-    is_deleted = models.BooleanField(default=False)
+# class StudentLeaveModel(models.Model):
+#     JUSTIFICATION = (("موجه", "موجه"), ("غیرموجه", "غیرموجه"))
+#     student = models.OneToOneField(Student, on_delete=models.CASCADE)
+#     date_of_leave = models.DateField()
+#     leave_period = models.PositiveSmallIntegerField()
+#     reason = models.CharField(max_length=10, choices=JUSTIFICATION)
+#     created_at = models.DateField(auto_now_add=True)
+#     modified_at = models.DateField(auto_now=True)
+#     is_deleted = models.BooleanField(default=False)
 
 
-class LeaveDurationModel(models.Model):
-    student = models.OneToOneField(Student, on_delete=models.CASCADE)
-    leave_duration = models.CharField(max_length=4)
-    created_at = models.DateField(auto_now_add=True)
-    modified_at = models.DateField(auto_now=True)
-    is_deleted = models.BooleanField(default=False)
+# class LeaveDurationModel(models.Model):
+#     student = models.OneToOneField(Student, on_delete=models.CASCADE)
+#     leave_duration = models.CharField(max_length=4)
+#     created_at = models.DateField(auto_now_add=True)
+#     modified_at = models.DateField(auto_now=True)
+#     is_deleted = models.BooleanField(default=False)
