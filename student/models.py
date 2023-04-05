@@ -1,49 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, AbstractBaseUser, PermissionsMixin
 
+from django_jalali.db import models as jmodels
 from mentor.models import Mentor
 from ceo.models import Course
-
-from django.contrib.auth.models import UserManager
-
-
-# class CustomUserManager(UserManager):
-#     def create_user(self, username, phone_number=None, identity_code=None, password=None, **extra_fields):
-#         # Set the password equal to the identity code
-#         username = phone_number
-#         password = identity_code
-#
-#         # Create the user with the updated password
-#         user = self.model(username=username, **extra_fields)
-#         user.set_password(password)
-#         user.save(using=self._db)
-#         return user
-#
-#     def create_superuser(self, username, identity_code=None, password=None, **extra_fields):
-#         # Set the password equal to the identity code
-#         password = identity_code
-#
-#         # Create the superuser with the updated password
-#         user = self.create_user(username, identity_code, password, **extra_fields)
-#         user.is_staff = True
-#         user.is_superuser = True
-#         user.save(using=self._db)
-#         return user
-
-
-# class User(AbstractBaseUser, PermissionsMixin):
-#     # other fields...
-#     groups = models.ManyToManyField(
-#         Group,
-#         verbose_name=('groups'),
-#         blank=True,
-#         help_text=(
-#             'The groups this user belongs to. A user will get all permissions '
-#             'granted to each of their groups.'
-#         ),
-#         related_name='user_groups',
-#     )
 
 
 class Student(models.Model):
@@ -59,21 +20,19 @@ class Student(models.Model):
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
     phone_number = models.CharField(max_length=13, unique=True)
-    date_of_birth = models.DateField()
+    date_of_birth = jmodels.jDateField()
     identity_code = models.CharField(max_length=15, unique=True)
     personality = models.CharField(max_length=4, choices=PERSONALITIES)
     avatar = models.ImageField(upload_to='profile_images/', blank=True, null=True)
 
     # objects = CustomUserManager()
 
+    created_at = models.DateField(auto_now_add=True)
+    modified_at = models.DateField(auto_now=True)
+    is_deleted = False
+
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['mentor', 'first_name', 'last_name', 'date_of_birth', 'phone_number', 'personality']
-
-    # def save(self, *args, **kwargs):
-    #     # Check if this is a new student account is being created
-    #     if not self.pk:
-    #         raise Exception("New student account can only be created by an admin.")
-    #     super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

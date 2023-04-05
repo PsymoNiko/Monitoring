@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
-from .models import StudentExerciseModel,MentorExerciseModel
+from .models import StudentExerciseModel,MentorExerciseModel,ExerciseAssignment
 from .serializers import StudentExerciseSerializer, MentorExerciseSerializer
 from student.models import Student
 
@@ -30,70 +30,84 @@ class MentorPanelGet(APIView):
         except Student.DoesNotExist:
             return Response({'message': 'دانشجویی با این نام وجود ندارد'}, status=status.HTTP_404_NOT_FOUND)
         
-class MentorPanelPost(APIView):
-    serializer_class = MentorExerciseSerializer
+# class MentorPanelPost(APIView):SendMentorExercise
+#     serializer_class = MentorExerciseSerializer
     
 
+#     def get_serializer(self, *args, **kwargs):
+#         return self.serializer_class(*args, **kwargs)
+    
+
+
+class MentorPanelPost(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = MentorExerciseSerializer
+
+    
     def get_serializer(self, *args, **kwargs):
         return self.serializer_class(*args, **kwargs)
     
     def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        task = serializer.save()
+        # Convert "true" to "True" and "false" to "False"
+        data = request.data.copy()
+        for key in data.keys():
+            if isinstance(data[key], str) and data[key].lower() == "true":
+                data[key] = True
+            elif isinstance(data[key], str) and data[key].lower() == "false":
+                data[key] = False
 
-        send_to_all = request.data.get('send_to_all')
-        student_ids = request.data.get('student_ids')
+        serializer = MentorExerciseSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        mentor_exercise = serializer.save(mentor=request.user)
+
+        send_to_all = data.get('send_to_all')
+        student_ids = data.get('student_ids')
 
         if send_to_all:
-        # Send exercise to all students
+            # Send exercise to all students
             students = Student.objects.all()
-            task.send_to_all = True
 
         elif student_ids is not None:
-        # Send exercise to selected students
-            # if len(student_ids) == 0:
-                # return Response({'error': 'At least one student must be selected'}, status=status.HTTP_400_BAD_REQUEST)
+            # Send exercise to selected students
+            if len(student_ids) == 0:
+                return Response({'error': 'At least one student must be selected'}, status=status.HTTP_400_BAD_REQUEST)
             students = Student.objects.filter(id__in=student_ids)
-            task.send_to_all = False
 
         else:
-            return Response({'error': '"student_ids" must be specified when "send_to_all" is not set'}, status=status.HTTP_400_BAD_REQUEST)
+            # Send exercise to all students
+            students = Student.objects.all()
 
+        # Create ExerciseAssignments for each student
+        for student in students:
+            ExerciseAssignment.objects.create(student=student, exercise=mentor_exercise)
 
-        task.send_to_all = send_to_all
-        task.save()
-        task.student_name.set(students)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({'success': True}, status=status.HTTP_200_OK)
 
     
     # def post(self, request):
-    #     # queryset = MentorExerciseModel.objects.all()
-    #     # serializer = MentorExerciseSerializer(queryset, data=request.data)
     #     serializer = self.get_serializer(data=request.data)
-
     #     serializer.is_valid(raise_exception=True)
     #     task = serializer.save()
 
     #     send_to_all = request.data.get('send_to_all')
     #     student_ids = request.data.get('student_ids')
 
-    #     if not send_to_all and not student_ids:
-    #         return Response({'error': 'Either "send_to_all" or "student_ids" must be specified'}, 
-    #                         status=status.HTTP_400_BAD_REQUEST)
-    #     elif not send_to_all and len(student_ids) == 0:
-    #         return Response({'error': 'At least one student must be selected'}, 
-    #                         status=status.HTTP_400_BAD_REQUEST)
-    #     elif student_ids is None:
-    #         return Response({'error': '"student_ids" must be specified when "send_to_all" is not set'}, 
-    #                         status=status.HTTP_400_BAD_REQUEST)
     #     if send_to_all:
-    #         # Send exercise to all students
+    #     # Send exercise to all students
     #         students = Student.objects.all()
-    #     else:
-    #         # Send exercise to selected students
+    #         task.send_to_all = True
+
+    #     elif student_ids:
+    #     # elif student_ids is not None:
+    #     # Send exercise to selected students
+    #         # if len(student_ids) == 0:
+    #         #     return Response({'error': 'At least one student must be selected'}, status=status.HTTP_400_BAD_REQUEST)
     #         students = Student.objects.filter(id__in=student_ids)
+    #         task.send_to_all = False
+
+    #     else:
+    #         return Response({'error': '"student_ids" must be specified when "send_to_all" is not set'}, status=status.HTTP_400_BAD_REQUEST)
+
 
     #     task.send_to_all = send_to_all
     #     task.save()
@@ -101,7 +115,7 @@ class MentorPanelPost(APIView):
 
     #     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
+ 
 
 class studentExerciseCreate(APIView):
     serializer_class = StudentExerciseSerializer

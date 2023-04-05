@@ -24,12 +24,17 @@ class MentorExerciseSerializer(serializers.ModelSerializer):
         # fields = ['mentor', 'send_to_all', 'student_name', 'exercise_name',]
         read_only_fields = ['created_at', 'modified_at']
 
-
-    def get_send_to_all(self, obj):
+    def send_to_all(self, obj):
         value = self.context['request'].data.get('send_to_all')
         if value is not None:
-            return bool(value)
+            return value.lower() == 'true'
         return False
+
+    # def send_to_all(self, obj):
+    #     value = self.context['request'].data.get('send_to_all')
+    #     if value is not None:
+    #         return bool(value)
+    #     return False
 
     def validate(self, data):
         if not data.get('student_ids') and not data.get('send_to_all'):
