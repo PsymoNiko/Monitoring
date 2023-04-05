@@ -31,7 +31,7 @@ class StudentExerciseModel(models.Model):
 class MentorExerciseModel(models.Model):
     mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
     send_to_all = models.BooleanField(default=False)
-    student_name = models.ManyToManyField(Student, blank=True)
+    student_name = models.ForeignKey(Student, on_delete=models.CASCADE, blank=True)
     exercise_name = models.CharField(max_length=200)
     is_seen_by_mentor = models.BooleanField(default=False)
     data_submitted = models.DateField(auto_now_add=True)
