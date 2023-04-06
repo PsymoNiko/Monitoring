@@ -82,3 +82,34 @@ class Payment(models.Model):
     month_number = models.IntegerField()
     receipt = models.ImageField(upload_to='receipt_images/')
     status = models.CharField(max_length=20, default='pending')
+
+
+#exercise
+
+
+# class ExerciseModel(models.Model):
+#     exercise_name = models.CharField(max_length=200)
+#     caption = models.TextField()
+#     # exercise_file = models.FileField(upload_to='exercise/', blank=True, null=True)
+#     exercise_file = models.FileField(max_length=200, blank=True, null=True)
+#     # mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
+#     # Students = models.ManyToManyField(Student, through='StudentExerciseModel')
+#     students = models.ManyToManyField(Student)
+#     """ through?"""
+
+
+class StudentExerciseModel(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    exercise_text = models.TextField(blank=True, null=True)
+    exercise_file = models.FileField(max_length=200, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+    is_done_exercise = models.BooleanField(default=False)
+    # done_exercise = models.PositiveIntegerField(default=0)
+    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.exercise_text
+
+

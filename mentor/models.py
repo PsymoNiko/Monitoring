@@ -2,6 +2,7 @@ from django.db import models
 
 from django_jalali.db import models as jmodels
 from django.contrib.auth.models import User
+from student.models import Student
 
 
 class Mentor(models.Model):
@@ -34,3 +35,38 @@ class Mentor(models.Model):
     def __str__(self):
         # return f"{self.id} - {self.first_name} {self.last_name}"
         return f"{self.first_name} - {self.phone_number}"
+
+
+#exercise
+
+class MentorExerciseModel(models.Model):
+    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
+    send_to_all = models.BooleanField(default=False)
+    # student_name = models.ForeignKey(Student, on_delete=models.CASCADE, blank=True)
+    student_name = models.ManyToManyField(Student)
+    exercise_name = models.CharField(max_length=200)
+    is_seen_by_mentor = models.BooleanField(default=False)
+    data_submitted = models.DateField(auto_now_add=True)
+    caption = models.TextField()
+    exercise_file = models.FileField(max_length=200, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.exercise_name
+
+
+class ExerciseAssignment(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(MentorExerciseModel, on_delete=models.CASCADE)
+
+
+# class ExerciseSubmission(models.Model):
+#     # student = models.ForeignKey(Student, on_delete=models.CASCADE)
+#     students = models.ManyToManyField(Student, related_name='exercises')
+#     exercise = models.ForeignKey(MentorExerciseModel, on_delete=models.CASCADE)
+#     submitted_at = models.DateTimeField(auto_now_add=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     modified_at = models.DateTimeField(auto_now=True)
+#     is_deleted = models.BooleanField(default=False)
