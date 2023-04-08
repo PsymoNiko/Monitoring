@@ -5,7 +5,7 @@ from django.db import transaction
 from django.contrib.auth.models import User
 
 from datetime import datetime, date
-
+from django.urls import reverse
 from .models import Student, Report, Payment
 from mentor_panel.models import Mentor
 from admin_panel.models import Course
@@ -74,44 +74,26 @@ class LoginViewAsStudentSerializer(serializers.ModelSerializer):
         fields = ('username', 'password')
 
 
-# class ReportSerializer(serializers.ModelSerializer):
-#     report_number = serializers.IntegerField(default=0)
-#     report_text = serializers.CharField(required=True)
-#     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-#     created_at = serializers.DateTimeField(read_only=True)
-#     deadline = serializers.DateTimeField(required=True)
-#     delayed = serializers.BooleanField(read_only=True)
-#     study_amount = serializers.CharField(max_length=4, required=True)
-#
-#     class Meta:
-#         model = Report
-#         fields = ('report_number', 'report_text', 'user',
-#                   'created_at', 'deadline', 'delayed',
-#                   'study_amount')
-#         read_only_fields = ['id', 'delayed', 'created_at', 'user']
-#
-#     def create(self, validated_data):
-#         user = self.context['request'].user
-#         student = Student.objects.get(user=user)
-#         validated_data['user'] = student
-#         validated_data['created_at'] = datetime.now()
-#         report = super().create(validated_data)
-#         return report
 class ReportSerializer(serializers.ModelSerializer):
     delay = serializers.SerializerMethodField()
-
+    is_submitted = serializers.BooleanField(default=False, read_only=True)
+    report_number = serializers.IntegerField(default=0, read_only=True)
     class Meta:
         model = Report
-        fields = ('id', 'text', 'amount_of_study', 'submission_date', 'delay')
+        fields = ('text', 'amount_of_study', 'submission_date', 'delay', 'report_number', 'is_submitted')
+        read_only = ('report_number', 'is_submitted')
 
     def get_delay(self, obj):
-        delay = (date.today() - obj.submission_date).days
+        delay = (date.today() - obj.submission_date).seconds
         return delay if delay >= 0 else 0
 
 
 class ReportSummarySerializer(serializers.Serializer):
     report_count = serializers.IntegerField()
     total_amount_of_study = serializers.IntegerField()
+    expected_hour = serializers.IntegerField()
+    punishment_for_fraction_of_hour = serializers.IntegerField()
+    average_of_amount_of_report = serializers.FloatField()
 
 
 class PaymentSerializer(serializers.ModelSerializer):

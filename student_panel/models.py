@@ -73,9 +73,11 @@ class StudentSettings(models.Model):
 #     #     super().save(*args, **kwargs)
 class Report(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    report_number = models.IntegerField(default=0)
     text = models.TextField()
     amount_of_study = models.PositiveIntegerField()
     submission_date = models.DateField(auto_now_add=True)
+    is_submitted = models.BooleanField(default=False)
 
 
 class Payment(models.Model):
@@ -88,9 +90,3 @@ class Payment(models.Model):
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .tasks import add_unsubmitted_report
-
-
-@receiver(post_save, sender=Report)
-def report_saved(sender, instance, **kwargs):
-    # Schedule the task to run in 24 hours
-    add_unsubmitted_report.apply_async(args=[instance.student_id], eta=timezone.now() + timezone.timedelta(days=1))

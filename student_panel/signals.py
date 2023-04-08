@@ -1,10 +1,11 @@
-from django.dispatch import receiver
 from django.db.models.signals import post_save
-
+from django.dispatch import receiver
+from .models import Report
 import datetime
-
-from .models import Student, Payment
-from admin_panel.models import Course
+from .tasks import add_unsubmitted_report
+from .models import Payment
+from django.utils import timezone
+from datetime import timedelta
 
 
 def create_monthly_receipts(course):
@@ -27,3 +28,17 @@ def monthly_receipt_saved(sender, instance, created, **kwargs):
             # Update monthly receipt status to "completed"
             instance.status = 'completed'
             instance.save()
+
+
+# @receiver(post_save, sender=Report)
+# def update_student_report_count(sender, instance, created, **kwargs):
+#     if created:
+#         student = instance.student
+#         student.report_count += 1
+#         student.save()
+
+
+@receiver(post_save, sender=Report)
+def report_saved(sender, instance, **kwargs):
+    # Schedule the task to run in 24 hours
+    add_unsubmitted_report.apply_async(args=[instance.student_id], eta=timezone.now() + timezone.timedelta(days=1))

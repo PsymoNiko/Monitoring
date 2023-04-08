@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     "mentor_panel",
     # framework
     "rest_framework",
-
+    'celery'
 ]
 
 MIDDLEWARE = [
