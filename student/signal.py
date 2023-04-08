@@ -12,13 +12,12 @@ def create_monthly_receipts(course):
     end_date = course.end_date
     for i in range(6):
         month_number = i + 1
-        month_start_date = start_date + datetime.timedelta(days=30*i)
-        month_end_date = start_date + datetime.timedelta(days=30*(i+1))
+        month_start_date = start_date + datetime.timedelta(days=30 * i)
+        month_end_date = start_date + datetime.timedelta(days=30 * (i + 1))
         if month_end_date > end_date:
             month_end_date = end_date
         Payment.objects.create(user=course.user, course=course, month_number=month_number,
-                                      start_at=month_start_date, end_date=month_end_date)
-
+                               start_at=month_start_date, end_date=month_end_date)
 
 
 @receiver(post_save, sender=Payment)

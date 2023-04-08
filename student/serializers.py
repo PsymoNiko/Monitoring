@@ -80,7 +80,7 @@ class StudentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Last name must not contain Persian numbers.')
         return value
 
-    def validate_identity_code(self, value: int) -> int:
+    def validate_identity_code(self, value: str) -> str:
         if not value.isnumeric():
             raise serializers.ValidationError('Identity code must be numeric.')
         if re.search('[^0-9]', value):

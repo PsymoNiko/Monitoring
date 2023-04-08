@@ -68,13 +68,15 @@ class StudentSettings(models.Model):
 
 
 class Report(models.Model):
-    report_number = models.IntegerField(default=0)
+    student = models.OneToOneField(Student, on_delete=models.CASCADE)
     report_text = models.TextField()
-    user = models.OneToOneField(Student, on_delete=models.CASCADE)
+    report_number = models.PositiveIntegerField(default=1)
+    amount_of_study = models.PositiveIntegerField()
+    is_submitted = models.BooleanField(default=True)
+    date_of_reporting = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
-    deadline = models.DateTimeField()
-    delayed = models.BooleanField(default=False)
-    study_amount = models.CharField(max_length=4)
+    modified_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
 
 
 class Payment(models.Model):
