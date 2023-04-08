@@ -20,7 +20,7 @@ from .serializers import MentorReportSubmissionSerializer, ReportSubmissionUpdat
 
 class MentorReportSubmissionList(APIView):
     """
-    List all report submissions or create a new one
+    List all report submissions 
     """
     def get(self, request):
         reports = MentorReportSubmission.objects.all()

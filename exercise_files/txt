@@ -1,0 +1,169 @@
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import PostModel
+from .serializers import PostSerializer
+from .permissions import IsOwnerOrReadOnly
+
+
+class PostView(APIView):
+    permission_classes = [IsOwnerOrReadOnly]
+
+    def get(self, request):
+        posts = PostModel.objects.all()
+        serializer = PostSerializer(posts, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PostSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(owner=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, slug):
+        try:
+            post = PostModel.objects.get(slug=slug)
+        except PostModel.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        self.check_object_permissions(request, post)
+
+        serializer = PostSerializer(post, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, slug):
+        try:
+            post = PostModel.objects.get(slug=slug)
+        except PostModel.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        self.check_object_permissions(request, post)
+
+        post.is_deleted = True
+        post.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+        
+        
+        
+        
+        
+        
+        i want to write a program app by drf and i want tow  pages, one page a student can send file than 10 mg and write caption and send exercise and after page all the exercise it exists and is shown there. and the number of unseen and seen exercise and he can see each exercise separately by clicking on it
+
+
+
+
+i use django rest frame work and api view I have a mentor number that takes daily reports from students, that is, there is a table on one page, including the report number, the date of submission, the student's name, the total number of hours he studied throughout the day, it should be hours and minutes, and the delay in sending the student's report should be on the hour. 10. If he doesn't send a report, he will be considered late, and he can search based on the report, and he can choose the date, and the last column is a link that can see the details of the report and send comments. By clicking on a button, it goes to the report table page. Here there is a table that includes the names of the students and the report number, and put the hours of the daily report in each column. You can choose a period to display the reports of that period and date choose and can display reports  this is my code 
+
+class MentorReportSubmission(models.Model):
+    report_number = models.CharField(max_length=50)
+    date = models.DateTimeField()
+    student_name = models.ForeignKey(Student, on_delete=models.CASCADE)
+    total_hours = models.DecimalField(max_digits=6, decimal_places=2)
+    comment = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.report_number} ({self.date})"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'date': self.date,
+            'report_number': self.report_number,
+            'caption': self.caption,
+            'hours': self.hours,
+            'sent': self.sent,
+        }
+
+
+
+
+class ReportSubmissionMentorSerializer(serializers.ModelSerializer):
+    delay = serializers.SerializerMethodField()
+    detail_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MentorReportSubmission
+        fields = ('id', 'report_number', 'date', 'student_name', 'total_hours', 'delay', 'detail_url')
+
+    def get_delay(self, obj):
+        deadline = obj.date.replace(hour=22, minute=0, second=0, microsecond=0)
+        if obj.date > deadline:
+            return (obj.date - deadline).seconds // 60
+        else:
+            return None
+
+    def get_detail_url(self, obj):
+        return f"/exercises/{obj.id}/"
+
+class ReportSubmissionDetailMentorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MentorReportSubmission
+        fields = ('id', 'report_number', 'date', 'student_name', 'total_hours', 'comment')
+
+class ReportSubmissionCreateMentorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MentorReportSubmission
+        fields = ('report_number', 'date', 'student_name', 'total_hours')
+
+class ReportSubmissionUpdateMentorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MentorReportSubmission
+        fields = ('comment',)
+
+
+
+
+class ReportSubmissionList(APIView):
+    def get(self, request):
+        submissions = MentorReportSubmission.objects.all()
+        serializer = ReportSubmissionMentorSerializer(submissions, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = ReportSubmissionCreateMentorSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
+class ReportSubmissionDetail(APIView):
+    def get(self, request, pk):
+        submission = get_object_or_404(MentorReportSubmission, pk=pk)
+        serializer = ReportSubmissionDetailMentorSerializer(submission)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        submission = get_object_or_404(MentorReportSubmission, pk=pk)
+        serializer = ReportSubmissionUpdateMentorSerializer(submission, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+    
+class SearchReportsMentor(APIView):
+    def get(self, request):
+        report_number = request.query_params.get('report_number')
+        date_str = request.query_params.get('date')
+        if report_number:
+            report = MentorReportSubmission.objects.filter(report_number=report_number).first()
+        elif date_str:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+            report = MentorReportSubmission.objects.filter(date=date_obj).first()
+        else:
+            report = None
+        if report:
+            serializer = ReportSubmissionMentorSerializer(report)
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'Report not found'}, status=404)
+
+
+
+
+
+
+
