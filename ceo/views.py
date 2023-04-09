@@ -1,24 +1,26 @@
 from django.contrib.auth import authenticate, login
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
+from django.core.paginator import Paginator
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, generics
+from rest_framework import status, generics, pagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.reverse import reverse
 
+import mentor.models
 from mentor.serializers import MentorSerializer
 from mentor.models import Mentor
 from student.models import Student
 from student.serializers import StudentSerializer
-from .serializers import LoginViewAsAdminSerializer, CourseSerializers
+from .serializers import LoginViewAsAdminSerializer, CourseSerializers, DailyNoteSerializers
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.views import LogoutView
 
-from .models import Course
+from .models import Course, DailyNote
 
 
 class LoginViewAsAdmin(generics.CreateAPIView):
@@ -66,6 +68,8 @@ class MentorCreateView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         mentor = serializer.create(serializer.validated_data)
+        # serializer.save()
+        # mentor.save()
 
         return Response({
             'message': 'Mentor account created successfully',
@@ -142,9 +146,73 @@ class CourseCreateView(generics.CreateAPIView):
 
 class CourseListView(generics.ListAPIView):
     queryset = Course.objects.all()
+    permission_classes = [IsAuthenticated, IsAdminUser]
     serializer_class = CourseSerializers
 
 
 class CourseRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
+    permission_classes = [IsAuthenticated, IsAdminUser]
     serializer_class = CourseSerializers
+
+
+class StudentListView(generics.ListAPIView):
+    queryset = Student.objects.all()
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    serializer_class = StudentSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.select_related('course')
+        return queryset
+
+
+class StudentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
+    permission_classes = [IsAdminUser]
+
+
+class AdminDailyNotesCreation(generics.CreateAPIView):
+    serializer_class = DailyNoteSerializers
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get_queryset(self):
+        return DailyNote.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class DailyNotePagination(pagination.PageNumberPagination):
+    page_size = 1
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+
+class AdminDailyNotesList(generics.ListAPIView):
+    queryset = DailyNote.objects.order_by('-created_at')
+    serializer_class = DailyNoteSerializers
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    pagination_class = DailyNotePagination
+
+    # def list(self, request, *args, **kwargs):
+    #     page_offset = int(request.query_params.get('page_offset', 1))
+    #     if page_offset < 1:
+    #         page_offset = 1
+    #     self.paginator.page = page_offset
+    #     paginator = Paginator(self.queryset, self.pagination_class.page_size, allow_empty_first_page=True)
+    #     page = paginator.get_page(paginator.validate_number(page_offset))
+    #     serializer = self.get_serializer(page, many=True)
+    #     return Response(serializer.data)
+
+    def get_queryset(self):
+        return DailyNote.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+
+
