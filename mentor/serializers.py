@@ -1,23 +1,13 @@
 import re
 
-from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
-import datetime
-import jdatetime
-from datetime import datetime
-from jdatetime import datetime as jdatetime_datetime
 
 from django.db import IntegrityError
 from django.db import transaction
 from django.contrib.auth.models import User
 
+from ceo.jcalendar import *
 from .models import Mentor
-
-
-class JalaliDateField(serializers.ReadOnlyField):
-    def to_representation(self, value):
-        return jdatetime.date.fromgregorian(date=value).strftime('%Y/%m/%d')
 
 
 class MentorSerializer(serializers.ModelSerializer):
@@ -39,8 +29,9 @@ class MentorSerializer(serializers.ModelSerializer):
                 user.set_password(validated_data['identity_code'])
                 user.save()
                 jalali_date = validated_data.pop('jalali_date_of_birth', None)
-                if jalali_date:
-                    validated_data['date_of_birth'] = convert_jalali_to_gregorian(jalali_date)
+                if not jalali_date:
+                    raise serializers.ValidationError({'jalali_date_of_birth': 'This field is required.'})
+                validated_data['date_of_birth'] = convert_jalali_to_gregorian(jalali_date)
 
                 mentor = Mentor.objects.create(user=user, **validated_data)
                 return mentor
@@ -122,12 +113,6 @@ class MentorSerializer(serializers.ModelSerializer):
             validated_data.pop('avatar')
 
         return super().update(instance, validated_data)
-
-
-def convert_jalali_to_gregorian(jalali_date):
-    jalali_date = jdatetime_datetime.strptime(jalali_date, '%Y-%m-%d').date()
-    gregorian_date = jalali_date.togregorian()
-    return datetime.combine(date=gregorian_date, time=datetime.min.time()).date()
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
