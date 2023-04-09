@@ -7,18 +7,10 @@ from django.db import IntegrityError
 from django.db import transaction
 from django.contrib.auth.models import User
 
-import datetime
-import jdatetime
-from datetime import datetime
-from jdatetime import datetime as jdatetime_datetime
-
 from .models import Student, Report, Payment
 
 from ceo.models import Course
-
-class JalaliDateField(serializers.ReadOnlyField):
-    def to_representation(self, value):
-        return jdatetime.date.fromgregorian(date=value).strftime('%Y/%m/%d')
+from ceo.jcalendar import *
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -42,25 +34,24 @@ class StudentSerializer(serializers.ModelSerializer):
                 user.set_password(validated_data['identity_code'])
                 user.save()
                 jalali_date = validated_data.pop('jalali_date_of_birth', None)
-                if jalali_date:
-                    validated_data['date_of_birth'] = convert_jalali_to_gregorian(jalali_date)
+                if not jalali_date:
+                    raise serializers.ValidationError({
+                        "jalali_date_of_birth": "This field is required."
+                    })
+                validated_data['date_of_birth'] = convert_jalali_to_gregorian(jalali_date)
 
                 student = Student.objects.create(user=user, **validated_data)
                 return student
         except IntegrityError:
             raise serializers.ValidationError('Phone number already exists')
 
-
-
     class Meta:
         model = Student
         fields = (
-        'id', 'course', 'course_name', 'first_name', 'last_name', 'jalali_date_of_birth', 'date_of_birth',
-        'phone_number', 'identity_code', 'personality', 'avatar')
-        read_only_fields = ['id', 'first_name', 'last_name', 'identity_code', 'jalali_date_of_birth', 'date_of_birth'
-                                                                              'personality']
-
-
+            'id', 'course', 'course_name', 'first_name', 'last_name', 'jalali_date_of_birth', 'date_of_birth',
+            'phone_number', 'identity_code', 'personality', 'avatar')
+        read_only_fields = ['id', 'first_name', 'last_name', 'identity_code', 'jalali_date_of_birth', 'date_of_birth',
+                                                                                                      'personality']
 
     def validate_phone_number(self, value: str) -> str:
 
@@ -121,11 +112,6 @@ class StudentSerializer(serializers.ModelSerializer):
         # Exclude 'identity_code' field from updates
         validated_data.pop('identity_code', None)
         return super().update(instance, validated_data)
-
-def convert_jalali_to_gregorian(jalali_date):
-    jalali_date = jdatetime_datetime.strptime(jalali_date, '%Y-%m-%d').date()
-    gregorian_date = jalali_date.togregorian()
-    return datetime.combine(date=gregorian_date, time=datetime.min.time()).date()
 
 
 class StudentTokenObtainPairSerializer(TokenObtainPairSerializer):
