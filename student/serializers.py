@@ -6,31 +6,32 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.db import IntegrityError
 from django.db import transaction
 from django.contrib.auth.models import User
-from django_jalali.serializers.serializerfield import JDateField
 
+import datetime
+import jdatetime
 from datetime import datetime
+from jdatetime import datetime as jdatetime_datetime
 
 from .models import Student, Report, Payment
 
 from ceo.models import Course
 
+class JalaliDateField(serializers.ReadOnlyField):
+    def to_representation(self, value):
+        return jdatetime.date.fromgregorian(date=value).strftime('%Y/%m/%d')
+
 
 class StudentSerializer(serializers.ModelSerializer):
     course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all())
+    course_name = serializers.ReadOnlyField(source='course.name')
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
-    date_of_birth = JDateField(format='%Y-%m-%d')
+    date_of_birth = JalaliDateField()
+    jalali_date_of_birth = serializers.CharField(required=False, allow_blank=True, max_length=10)
     phone_number = serializers.CharField(required=True)
     identity_code = serializers.CharField(required=True, write_only=True)
     personality = serializers.ChoiceField(choices=Student.PERSONALITIES, required=True)
     avatar = serializers.ImageField(required=False)
-
-    class Meta:
-        model = Student
-        fields = ('course', 'first_name', 'last_name', 'date_of_birth', 'phone_number', 'identity_code',
-                  'personality', 'avatar')
-        read_only_fields = ['id', 'first_name', 'last_name', 'identity_code', 'date_of_birth'
-                                                                              'personality']
 
     def create(self, validated_data: dict) -> Student:
         try:
@@ -40,12 +41,28 @@ class StudentSerializer(serializers.ModelSerializer):
 
                 user.set_password(validated_data['identity_code'])
                 user.save()
+                jalali_date = validated_data.pop('jalali_date_of_birth', None)
+                if jalali_date:
+                    validated_data['date_of_birth'] = convert_jalali_to_gregorian(jalali_date)
+
                 student = Student.objects.create(user=user, **validated_data)
                 return student
         except IntegrityError:
             raise serializers.ValidationError('Phone number already exists')
 
-    def validate_phone_number(self, value: int or str) -> int:
+
+
+    class Meta:
+        model = Student
+        fields = (
+        'id', 'course', 'course_name', 'first_name', 'last_name', 'jalali_date_of_birth', 'date_of_birth',
+        'phone_number', 'identity_code', 'personality', 'avatar')
+        read_only_fields = ['id', 'first_name', 'last_name', 'identity_code', 'jalali_date_of_birth', 'date_of_birth'
+                                                                              'personality']
+
+
+
+    def validate_phone_number(self, value: str) -> str:
 
         if value.startswith('+98') and len(value) == 13 and str(value[1:]).isnumeric():
             value = '0' + str(value[3:])
@@ -80,7 +97,7 @@ class StudentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Last name must not contain Persian numbers.')
         return value
 
-    def validate_identity_code(self, value: int) -> int:
+    def validate_identity_code(self, value: str) -> str:
         if not value.isnumeric():
             raise serializers.ValidationError('Identity code must be numeric.')
         if re.search('[^0-9]', value):
@@ -88,18 +105,27 @@ class StudentSerializer(serializers.ModelSerializer):
         return value
 
     def validate_avatar(self, value):
-        max_size = 11 * 1024 * 1024  # Maximum allowed size in bytes (11 MB)
+        max_size = 11 * 1024 * 1024
         if value.size > max_size:
             raise serializers.ValidationError('Avatar size must be less than 11 MB.')
         if not value.name.lower().endswith('.jpeg') and not value.name.lower().endswith('.jpg'):
             raise serializers.ValidationError('Avatar must be in JPEG/JPG format.')
         return value
 
+    # def update(self, instance, validated_data):
+    #     instance.phone_number = validated_data.get("phone_number", instance.phone_number)
+    #     instance.avatar = validated_data.get("avatar", instance.avatar)
+    #     instance.save()
+    #     return instance
     def update(self, instance, validated_data):
-        instance.phone_number = validated_data.get("phone_number", instance.phone_number)
-        instance.avatar = validated_data.get("avatar", instance.avatar)
-        instance.save()
-        return instance
+        # Exclude 'identity_code' field from updates
+        validated_data.pop('identity_code', None)
+        return super().update(instance, validated_data)
+
+def convert_jalali_to_gregorian(jalali_date):
+    jalali_date = jdatetime_datetime.strptime(jalali_date, '%Y-%m-%d').date()
+    gregorian_date = jalali_date.togregorian()
+    return datetime.combine(date=gregorian_date, time=datetime.min.time()).date()
 
 
 class StudentTokenObtainPairSerializer(TokenObtainPairSerializer):

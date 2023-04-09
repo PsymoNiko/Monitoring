@@ -1,11 +1,10 @@
 from django.db import models
 
-from django_jalali.db import models as jmodels
 from django.contrib.auth.models import User
 
 
+
 class Mentor(models.Model):
-    objects = jmodels.jManager()
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='mentor_profile')
 
     PERSONALITIES = (
@@ -17,8 +16,7 @@ class Mentor(models.Model):
 
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
-    # password = models.CharField(max_length=128)
-    date_of_birth = jmodels.jDateField()
+    date_of_birth = models.DateField()
     phone_number = models.CharField(max_length=13, editable=True, unique=True)
     identity_code = models.CharField(max_length=10, unique=True)
     personality = models.CharField(max_length=15, choices=PERSONALITIES)
@@ -26,11 +24,11 @@ class Mentor(models.Model):
 
     created_at = models.DateField(auto_now_add=True)
     modified_at = models.DateField(auto_now=True)
-    is_deleted = False
+    is_deleted = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'date_of_birth', 'phone_number', 'personality']
 
     def __str__(self):
         # return f"{self.id} - {self.first_name} {self.last_name}"
-        return f"{self.first_name} - {self.phone_number}"
+        return f"{self.first_name} - {self.phone_number} - {self.date_of_birth}"

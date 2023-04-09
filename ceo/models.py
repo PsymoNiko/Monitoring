@@ -3,6 +3,8 @@ from django.contrib.auth.models import User, Group, Permission
 
 from mentor.models import Mentor
 
+from django_jalali.db import models as jmodels
+
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 
@@ -22,6 +24,20 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class DailyNote(models.Model):
+    objects = jmodels.jManager()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='admin_notes')
+    daily_note = models.TextField()
+    created_at = jmodels.jDateField(auto_now_add=True)
+    modified_at = jmodels.jDateField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+
+    # def save(self, *args, **kwargs):
+    #     if self.user_id is None:
+    #         raise ValueError("user_id cannot be null")
+    #     super().save(*args, **kwargs)
 
 # class Admin(AbstractBaseUser, PermissionsMixin):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')

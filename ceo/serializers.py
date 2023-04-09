@@ -3,8 +3,10 @@ from rest_framework import serializers
 
 from django.urls import reverse
 
+from django_jalali.serializers.serializerfield import JDateField
+
 from django.contrib.auth.models import User
-from .models import Course
+from .models import Course, DailyNote
 from mentor.models import Mentor
 
 
@@ -55,3 +57,12 @@ class CourseSerializers(serializers.ModelSerializer):
         instance.short_brief = validated_data.get("short_brief", instance.short_brief)
         instance.save()
         return instance
+
+
+class DailyNoteSerializers(serializers.ModelSerializer):
+    daily_note = serializers.CharField()
+    # created_at = JDateField(format='%Y-%m-%d')
+    class Meta:
+        model = DailyNote
+        fields = ('daily_note', 'created_at',)
+
