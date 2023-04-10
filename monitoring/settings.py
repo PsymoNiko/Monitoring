@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # apps
     "student",
+    "Chat",
+    "channels",
     "ceo",
     "mentor",
     "payment",
@@ -80,6 +82,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'monitoring.wsgi.application'
+ASGI_APPLICATION = 'monitoring.asgi.application'
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+        },
+    },
+}
 
 
 # Database
@@ -128,6 +141,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_DIRS=[
+    os.path.join(BASE_DIR, 'static')
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

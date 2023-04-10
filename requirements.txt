@@ -34,3 +34,5 @@ vine==5.0.0
 wcwidth==0.2.6
 djangorestframework-simplejwt==5.2.2
 python-dotenv
+pull redis
+channels_redis
