@@ -20,6 +20,14 @@
             + roomName
             + '/'
         );
+        chatSocket.onopen = function(e)
+
+            chatSocket.send(JSON.stringify({
+                'message': message
+                'command':fetch_message
+            }));
+
+
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
@@ -42,6 +50,7 @@
             const message = messageInputDom.value;
             chatSocket.send(JSON.stringify({
                 'message': message
+                'command':new_message
             }));
             messageInputDom.value = '';
         };

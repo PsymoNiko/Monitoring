@@ -1,6 +1,5 @@
 import os
 import Chat.routing
-from channels.auth import AuthMiddlewareStack
 import os
 
 from channels.auth import AuthMiddlewareStack
