@@ -1,7 +1,4 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework import serializers
-
-from django.urls import reverse
 
 from django.db import IntegrityError
 from django.db import transaction
@@ -9,7 +6,7 @@ from django.db import transaction
 from django.contrib.auth.models import User
 from .models import Course, DailyNote
 from mentor.models import Mentor
-from .jcalendar import *
+from monitoring.utils import *
 
 
 class LoginViewAsAdminSerializer(serializers.ModelSerializer):
