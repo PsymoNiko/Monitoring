@@ -1,6 +1,5 @@
 import re
 
-from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from django.db import IntegrityError
@@ -10,7 +9,7 @@ from django.contrib.auth.models import User
 from .models import Student, Report, Payment
 
 from ceo.models import Course
-from ceo.jcalendar import *
+from monitoring.utils import *
 
 
 class StudentSerializer(serializers.ModelSerializer):

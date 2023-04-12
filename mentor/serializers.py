@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from django.db import transaction
 from django.contrib.auth.models import User
 
-from ceo.jcalendar import *
+from monitoring.utils import *
 from .models import Mentor
 
 
