@@ -1,16 +1,14 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .views import StudentTokenObtainPairSerializer, LoginViewAsStudent,\
-    StudentDetails, StudentDetailView, DailyReportView
+from . import views
+from .serializers import StudentTokenObtainPairSerializer
 
 urlpatterns = [
-    # path('login/', StudentTokenObtainPairSerializer.as_view()),
-    path('login2/', TokenObtainPairView.as_view(serializer_class=StudentTokenObtainPairSerializer)),
-    path('login/', LoginViewAsStudent.as_view()),
-    path('detail/', StudentDetails.as_view()),
-    path('detail2/<int:pk>/', StudentDetailView.as_view()),
-
-    # Report
-    path('create-report/', DailyReportView.as_view()),
+    path('login2/', views.TokenObtainPairView.as_view(serializer_class=StudentTokenObtainPairSerializer)),
+    path('login/', views.LoginViewAsStudent.as_view()),
+    path('detail/', views.StudentDetails.as_view()),
+    path('detail2/<int:pk>/', views.StudentDetailView.as_view()),
+    path('reports/', views.ReportListCreateView.as_view(), name='report-list-create'),
+    path('reports/<int:report_number>/', views.ReportRetrieveView.as_view(), name='report-detail'),
 ]

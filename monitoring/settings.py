@@ -37,14 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    'django_jalali',
+    # 'student.apps.ReportConfig',
     # apps
     "student",
     "ceo",
     "mentor",
-    "payment",
-    'DailyReport',
+    "celery",
+
+
     # framework
     "rest_framework",
     'rest_framework.authtoken',

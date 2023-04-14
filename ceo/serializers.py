@@ -44,7 +44,6 @@ class CourseSerializers(serializers.ModelSerializer):
         fields = ('id', 'name', 'mentor', 'start_at', 'duration', 'class_time',
                   'how_to_hold', 'short_brief', 'url')
 
-
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
         instance.mentor = validated_data.get("mentor", instance.mentor)

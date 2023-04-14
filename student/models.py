@@ -1,8 +1,8 @@
+import datetime
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, AbstractBaseUser, PermissionsMixin
-
-from django_jalali.db import models as jmodels
 from mentor.models import Mentor
 from ceo.models import Course
 
@@ -20,7 +20,7 @@ class Student(models.Model):
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
     phone_number = models.CharField(max_length=13, unique=True)
-    date_of_birth = jmodels.jDateField()
+    date_of_birth = models.DateField()
     identity_code = models.CharField(max_length=15, unique=True)
     personality = models.CharField(max_length=4, choices=PERSONALITIES)
     avatar = models.ImageField(upload_to='profile_images/', blank=True, null=True)
@@ -67,20 +67,39 @@ class StudentSettings(models.Model):
     new_message = models.BooleanField(default=False, editable=True)
 
 
-class Report(models.Model):
-    student = models.OneToOneField(Student, on_delete=models.CASCADE)
-    report_text = models.TextField()
-    report_number = models.PositiveIntegerField(default=1)
-    amount_of_study = models.PositiveIntegerField()
-    is_submitted = models.BooleanField(default=True)
-    date_of_reporting = models.DateField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    modified_at = models.DateTimeField(auto_now=True)
-    is_deleted = models.BooleanField(default=False)
-
-
 class Payment(models.Model):
     user = models.ForeignKey(Student, on_delete=models.CASCADE)
     month_number = models.IntegerField()
     receipt = models.ImageField(upload_to='receipt_images/')
     status = models.CharField(max_length=20, default='pending')
+
+
+class Report(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    report_text = models.TextField()
+    study_amount = models.FloatField()
+    report_number = models.IntegerField()
+    is_submitted = models.BooleanField(default=False)
+    time_of_submit = models.DateTimeField(auto_now_add=True)
+    create_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+    # deadline = models.DateTimeField(default=datetime.datetime.)
+    #
+    # @property
+    # def delay(self):
+    #     if self.is_submitted:
+    #         if self.time_of_submit <= self.deadline:
+    #             return datetime.timedelta()
+    #         else:
+    #             return self.time_of_submit - self.deadline
+    #     else:
+    #         return None
+
+
+
+
+
+
+
+
