@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, AbstractBaseUser, PermissionsMixin
 
-from django_jalali.db import models as jmodels
+
 from mentor.models import Mentor
 from ceo.models import Course
 
@@ -20,7 +20,7 @@ class Student(models.Model):
     first_name = models.CharField(max_length=35)
     last_name = models.CharField(max_length=35)
     phone_number = models.CharField(max_length=13, unique=True)
-    date_of_birth = jmodels.jDateField()
+    date_of_birth = models.DateField()
     identity_code = models.CharField(max_length=15, unique=True)
     personality = models.CharField(max_length=4, choices=PERSONALITIES)
     avatar = models.ImageField(upload_to='profile_images/', blank=True, null=True)
@@ -29,7 +29,7 @@ class Student(models.Model):
 
     created_at = models.DateField(auto_now_add=True)
     modified_at = models.DateField(auto_now=True)
-    is_deleted = False
+    is_deleted = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['mentor', 'first_name', 'last_name', 'date_of_birth', 'phone_number', 'personality']
@@ -68,13 +68,25 @@ class StudentSettings(models.Model):
 
 
 class Report(models.Model):
-    report_number = models.IntegerField(default=0)
+    student = models.OneToOneField(Student, on_delete=models.CASCADE)
     report_text = models.TextField()
-    user = models.OneToOneField(Student, on_delete=models.CASCADE)
+    report_number = models.PositiveIntegerField(default=1)
+    amount_of_study = models.PositiveIntegerField()
+    is_submitted = models.BooleanField(default=True)
+    date_of_reporting = models.DateField()
+
     created_at = models.DateTimeField(auto_now_add=True)
-    deadline = models.DateTimeField()
-    delayed = models.BooleanField(default=False)
-    study_amount = models.CharField(max_length=4)
+    modified_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+
+
+    # report_number = models.IntegerField(default=0)
+    # report_text = models.TextField()
+    # user = models.OneToOneField(Student, on_delete=models.CASCADE)
+    # created_at = models.DateTimeField(auto_now_add=True)
+    # deadline = models.DateTimeField()
+    # delayed = models.BooleanField(default=False)
+    # study_amount = models.CharField(max_length=4)
 
 
 class Payment(models.Model):
@@ -82,3 +94,36 @@ class Payment(models.Model):
     month_number = models.IntegerField()
     receipt = models.ImageField(upload_to='receipt_images/')
     status = models.CharField(max_length=20, default='pending')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+
+
+class AdminPayment(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='admin_payments')
+    # payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='admin_payments')
+    amount_of_receipt = models.CharField(max_length=9)
+    receipt_count = models.IntegerField()
+    date = models.DateField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.student} you have to pay {self.amount_of_receipt} on {self.date}"
+
+    @classmethod
+    def create(cls, student, receipt_count, date):
+        # Get the amount_of_receipt from the student
+        amount_of_receipt = student.amount_of_receipt
+
+        # Create a new AdminPayment object with the values passed as arguments
+        admin_payment = cls(student=student, amount_of_receipt=amount_of_receipt, receipt_count=receipt_count, date=date)
+
+        # Save the new AdminPayment object to the database
+        admin_payment.save()
+
+        # Return the new AdminPayment object
+        return admin_payment

@@ -6,6 +6,10 @@ from mentor.models import Mentor
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 
+
+
+
+
 # class MyUserManager(BaseUserManager):
 #     def create_user(self, ):
 
@@ -23,6 +27,8 @@ class Course(models.Model):
     how_to_hold = models.CharField(max_length=15, choices=HOLDING)
     short_brief = models.CharField(max_length=70)
 
+
+    # students = models.ManyToManyField(Student, related_name='courses')
 
     def __str__(self):
         return self.name
