@@ -2,6 +2,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, authentication, permissions, generics, viewsets
 
+<<<<<<< HEAD
+=======
+from rest_framework.permissions import IsAuthenticated
+
+from django.http import Http404
+
+
+
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from django.contrib.auth.decorators import login_required
@@ -73,7 +82,11 @@ class LoginViewAsStudent(generics.CreateAPIView):
             # else:
             #     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
             # Return a success response with the user's information
+<<<<<<< HEAD
             return Response(serializer.data, status=status.HTTP_200_OK)
+=======
+            # return Response(serializer.data, status=status.HTTP_200_OK)
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
 
 
 
@@ -87,13 +100,21 @@ class StudentDetails(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
+<<<<<<< HEAD
         serializer = StudentSerializer(request.user)
+=======
+        serializer = StudentSerializer(request.user, many=True, context={'request': request})
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
         return Response(serializer.data)
 
 
 class StudentDetailView(generics.RetrieveDestroyAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
+<<<<<<< HEAD
+=======
+    permission_classes = [IsAuthenticated]
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
 
     def get_object(self):
         user_id = self.request.user.id
@@ -118,4 +139,9 @@ class DailyReportView(generics.CreateAPIView):
 
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
+<<<<<<< HEAD
     serializer_class = PaymentSerializer
+=======
+    serializer_class = PaymentSerializer
+
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8

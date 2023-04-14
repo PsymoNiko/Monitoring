@@ -1,13 +1,18 @@
+<<<<<<< HEAD
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 
 from django.urls import reverse
+=======
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
 
 from django.db import IntegrityError
 from django.db import transaction
 
 from django.contrib.auth.models import User
+<<<<<<< HEAD
 from .models import Course
 from mentor.models import Mentor
 # from .jcalendar import *
@@ -15,6 +20,13 @@ from mentor.models import Mentor
 from django.contrib.auth.models import User
 from .models import Course
 from mentor.models import Mentor
+=======
+from .models import Course, DailyNote
+from mentor.models import Mentor
+from student.serializers import StudentSerializer
+from student.models import AdminPayment
+from monitoring.utils import *
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
 
 
 class LoginViewAsAdminSerializer(serializers.ModelSerializer):
@@ -42,6 +54,7 @@ class CourseSerializers(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='course-detail')
     name = serializers.CharField(required=True)
     mentor = serializers.PrimaryKeyRelatedField(queryset=Mentor.objects.all())
+<<<<<<< HEAD
 
     # start_at = serializers.DateField(required=True)
     # start_at = JalaliDateField()
@@ -50,12 +63,22 @@ class CourseSerializers(serializers.ModelSerializer):
 
     start_at = serializers.DateField(required=True)
 
+=======
+    students = StudentSerializer(many=True, read_only=True)
+    # start_at = serializers.DateField(required=True)
+    start_at = JalaliDateField()
+    jalali_start_at = serializers.CharField(required=False, allow_blank=True, max_length=10)
+    days_of_week = serializers.MultipleChoiceField(choices=Course.DAYS_OF_WEEK_CHOICES)
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
     duration = serializers.IntegerField(default=6, min_value=0)
     class_time = serializers.TimeField()  # format=['%H']
     how_to_hold = serializers.ChoiceField(choices=Course.HOLDING, required=True)
     short_brief = serializers.CharField(max_length=70)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
     def create(self, validated_data):
         try:
             with transaction.atomic():
@@ -74,6 +97,7 @@ class CourseSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Course
+
         fields = ('id', 'name', 'mentor', 'jalali_start_at', 'start_at', 'days_of_week', 'duration', 'class_time',
                   'how_to_hold', 'short_brief', 'url')
         read_only_fields = ['id', 'jalali_start_at', 'start_at']
@@ -82,6 +106,11 @@ class CourseSerializers(serializers.ModelSerializer):
         model = Course
         fields = ('id', 'name', 'mentor', 'start_at', 'duration', 'class_time',
                   'how_to_hold', 'short_brief', 'url')
+
+
+        fields = ('id', 'name', 'mentor', 'students', 'jalali_start_at', 'start_at', 'days_of_week', 'duration', 'class_time',
+                  'how_to_hold', 'short_brief', 'url')
+        read_only_fields = ['id', 'jalali_start_at', 'start_at', 'students']
 
 
 
@@ -95,6 +124,9 @@ class CourseSerializers(serializers.ModelSerializer):
         instance.short_brief = validated_data.get("short_brief", instance.short_brief)
         instance.save()
 
+
+
+
         return instance
 
 
@@ -106,5 +138,15 @@ class DailyNoteSerializers(serializers.ModelSerializer):
         fields = ('daily_note', 'created_at',)
 
 
+
         # return instance
+
+
+
+class AdminPaymentSerializer(serializers.ModelSerializer):
+    student = serializers.ReadOnlyField(source='student.id')
+
+    class Meta:
+        model = AdminPayment
+        fields = ['student', 'amount_of_receipt', 'receipt_count', 'date']
 

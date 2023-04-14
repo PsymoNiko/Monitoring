@@ -5,3 +5,6 @@ from .serializers import MyTokenObtainPairSerializer
 
 class ObtainTokenPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+    serializer_class = MyTokenObtainPairSerializer
+

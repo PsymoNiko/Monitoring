@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+<<<<<<< HEAD
 from rest_framework import status, generics, authentication, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -14,17 +15,32 @@ import requests
 from .serializers import MentorSerializer, MyTokenObtainPairSerializer, LoginViewAsMentorSerializer
 from .models import Mentor
 # from ceo.models import Admin
+=======
+from rest_framework import status, generics
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+
+from django.contrib.auth import authenticate, login
+
+from .serializers import MentorSerializer, MyTokenObtainPairSerializer, LoginViewAsMentorSerializer
+from .models import Mentor
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 class LoginViewAsMentor(generics.CreateAPIView):
     serializer_class = LoginViewAsMentorSerializer
+<<<<<<< HEAD
+=======
+
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
     def create(self, request, *args, **kwargs):
         # Get the username and password from the request data
         username = request.data.get('username')
         password = request.data.get('password')
 
+<<<<<<< HEAD
         # Authenticate the user using Django's built-in function
         mentor = authenticate(request, username=username, password=password)
 
@@ -39,6 +55,15 @@ class LoginViewAsMentor(generics.CreateAPIView):
             return Response(self.get_serializer(mentor).data, status=status.HTTP_200_OK)
         else:
             # Return an error response if authentication failed
+=======
+        mentor = authenticate(request, username=username, password=password)
+
+        if mentor is not None:
+
+            login(request, mentor)
+            return Response(self.get_serializer(mentor).data, status=status.HTTP_200_OK)
+        else:
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
             return Response({"error": "Invalid username  or password"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -66,6 +91,7 @@ class CustomObtainAuthToken(ObtainAuthToken):
             'token': token.key,
             'refresh_token': token.get_refresh_token(),
         }, status=status.HTTP_200_OK)
+<<<<<<< HEAD
 
 
 # class CreateMentorView(APIView):
@@ -109,3 +135,5 @@ class CustomObtainAuthToken(ObtainAuthToken):
         #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         # Create the mentor account
+=======
+>>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
