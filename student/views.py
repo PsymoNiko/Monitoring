@@ -2,6 +2,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, authentication, permissions, generics, viewsets
 
+from rest_framework.permissions import IsAuthenticated
+
+from django.http import Http404
+
+
+
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from django.contrib.auth.decorators import login_required
@@ -87,13 +93,14 @@ class StudentDetails(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        serializer = StudentSerializer(request.user)
+        serializer = StudentSerializer(request.user, many=True, context={'request': request})
         return Response(serializer.data)
 
 
 class StudentDetailView(generics.RetrieveDestroyAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         user_id = self.request.user.id

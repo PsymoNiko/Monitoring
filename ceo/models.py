@@ -110,3 +110,7 @@ class DailyNote(models.Model):
 #                                        phone_number=mentor_phone_number, identity_code=mentor_identity_code,
 #                                        personality=mentor_personality, avatar=mentor_avatar)
 #         return mentor
+
+
+
+
