@@ -74,6 +74,7 @@ class Report(models.Model):
     amount_of_study = models.PositiveIntegerField()
     is_submitted = models.BooleanField(default=True)
     date_of_reporting = models.DateField()
+
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
@@ -93,3 +94,36 @@ class Payment(models.Model):
     month_number = models.IntegerField()
     receipt = models.ImageField(upload_to='receipt_images/')
     status = models.CharField(max_length=20, default='pending')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+
+
+class AdminPayment(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='admin_payments')
+    # payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='admin_payments')
+    amount_of_receipt = models.CharField(max_length=9)
+    receipt_count = models.IntegerField()
+    date = models.DateField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.student} you have to pay {self.amount_of_receipt} on {self.date}"
+
+    @classmethod
+    def create(cls, student, receipt_count, date):
+        # Get the amount_of_receipt from the student
+        amount_of_receipt = student.amount_of_receipt
+
+        # Create a new AdminPayment object with the values passed as arguments
+        admin_payment = cls(student=student, amount_of_receipt=amount_of_receipt, receipt_count=receipt_count, date=date)
+
+        # Save the new AdminPayment object to the database
+        admin_payment.save()
+
+        # Return the new AdminPayment object
+        return admin_payment

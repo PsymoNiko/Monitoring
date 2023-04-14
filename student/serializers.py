@@ -2,6 +2,7 @@ import re
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from django.shortcuts import reverse
 from django.db import IntegrityError
 from django.db import transaction
 from django.contrib.auth.models import User
@@ -13,6 +14,11 @@ from monitoring.utils import *
 
 
 class StudentSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='admin-students-details',
+        lookup_field='pk'
+    )
+
     course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all())
     course_name = serializers.ReadOnlyField(source='course.name')
     first_name = serializers.CharField(required=True)
@@ -47,10 +53,11 @@ class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = (
-            'id', 'course', 'course_name', 'first_name', 'last_name', 'jalali_date_of_birth', 'date_of_birth',
+            'id', 'course', 'course_name', 'url', 'first_name', 'last_name', 'jalali_date_of_birth', 'date_of_birth',
             'phone_number', 'identity_code', 'personality', 'avatar')
-        read_only_fields = ['id', 'first_name', 'last_name', 'identity_code', 'jalali_date_of_birth', 'date_of_birth',
-                                                                                                      'personality']
+        read_only_fields = ['id', 'first_name', 'url', 'last_name', 'identity_code', 'jalali_date_of_birth',
+                            'date_of_birth',
+                            'personality']
 
     def validate_phone_number(self, value: str) -> str:
 

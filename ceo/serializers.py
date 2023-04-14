@@ -6,6 +6,8 @@ from django.db import transaction
 from django.contrib.auth.models import User
 from .models import Course, DailyNote
 from mentor.models import Mentor
+from student.serializers import StudentSerializer
+from student.models import AdminPayment
 from monitoring.utils import *
 
 
@@ -34,6 +36,7 @@ class CourseSerializers(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='course-detail')
     name = serializers.CharField(required=True)
     mentor = serializers.PrimaryKeyRelatedField(queryset=Mentor.objects.all())
+    students = StudentSerializer(many=True, read_only=True)
     # start_at = serializers.DateField(required=True)
     start_at = JalaliDateField()
     jalali_start_at = serializers.CharField(required=False, allow_blank=True, max_length=10)
@@ -61,9 +64,9 @@ class CourseSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ('id', 'name', 'mentor', 'jalali_start_at', 'start_at', 'days_of_week', 'duration', 'class_time',
+        fields = ('id', 'name', 'mentor', 'students', 'jalali_start_at', 'start_at', 'days_of_week', 'duration', 'class_time',
                   'how_to_hold', 'short_brief', 'url')
-        read_only_fields = ['id', 'jalali_start_at', 'start_at']
+        read_only_fields = ['id', 'jalali_start_at', 'start_at', 'students']
 
 
     def update(self, instance, validated_data):
@@ -85,3 +88,11 @@ class DailyNoteSerializers(serializers.ModelSerializer):
         model = DailyNote
         fields = ('daily_note', 'created_at',)
 
+
+
+class AdminPaymentSerializer(serializers.ModelSerializer):
+    student = serializers.ReadOnlyField(source='student.id')
+
+    class Meta:
+        model = AdminPayment
+        fields = ['student', 'amount_of_receipt', 'receipt_count', 'date']

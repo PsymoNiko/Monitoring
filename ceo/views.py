@@ -1,7 +1,8 @@
 from django.contrib.auth import authenticate, login
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
-from django.core.paginator import Paginator
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -12,9 +13,9 @@ from rest_framework.reverse import reverse
 import mentor.models
 from mentor.serializers import MentorSerializer
 from mentor.models import Mentor
-from student.models import Student
+from student.models import Student, AdminPayment
 from student.serializers import StudentSerializer
-from .serializers import LoginViewAsAdminSerializer, CourseSerializers, DailyNoteSerializers
+from .serializers import LoginViewAsAdminSerializer, CourseSerializers, DailyNoteSerializers, AdminPaymentSerializer
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -83,11 +84,19 @@ class MentorCreateView(generics.CreateAPIView):
 class StudentCreateView(generics.CreateAPIView):
     serializer_class = StudentSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
+    queryset = Student.objects.all()
+
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        request_data = request.data.copy()
+        url = request_data.pop('url', None)
+
+        serializer = self.get_serializer(data=request_data)
         serializer.is_valid(raise_exception=True)
-        student = serializer.create(serializer.validated_data)
+        instance = serializer.save()
+        if url:
+            instance.url = url
+            instance.save()
 
         return Response({
             'message': 'Student account created successfully',
@@ -155,6 +164,25 @@ class CourseRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     serializer_class = CourseSerializers
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+
+        students = instance.mentor_of_course.all()
+        student_serializer = StudentSerializer(students, many=True)
+        serializer_data = serializer.data
+        serializer_data['students'] = student_serializer.data
+        return Response(serializer_data)
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        queryset = instance.student_course.all()
+        students_serializer = StudentSerializer(queryset, many=True, context={'request': request})
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        data['students'] = students_serializer.data
+        return Response(data)
+
 
 class StudentListView(generics.ListAPIView):
     queryset = Student.objects.all()
@@ -190,7 +218,6 @@ class DailyNotePagination(pagination.PageNumberPagination):
     max_page_size = 100
 
 
-
 class AdminDailyNotesList(generics.ListAPIView):
     queryset = DailyNote.objects.order_by('-created_at')
     serializer_class = DailyNoteSerializers
@@ -214,5 +241,61 @@ class AdminDailyNotesList(generics.ListAPIView):
         serializer.save(user=self.request.user)
 
 
+class ListStudentOfEachCourse(generics.ListAPIView):
+    # queryset = Course.objects.prefetch_related('student_course')
+    serializer_class = CourseSerializers
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    queryset = Course.objects.all()
+
+    def get_queryset(self):
+        queryset = Course.objects.all()
+        return queryset.prefetch_related('student_course')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        serializer_data = serializer.data
+
+        for course_data in serializer_data:
+            course_id = course_data['id']
+            students = Student.objects.filter(course_id=course_id)
+            student_serializer = StudentSerializer(students, many=True, context={'request': request})
+            course_data['students'] = student_serializer.data
+
+        return Response(serializer_data)
+
+    # def list(self, request, *args, **kwargs):
+    #     queryset = self.get_queryset()
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
 
 
+class AdminStudentOfEachClass(generics.RetrieveDestroyAPIView):
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
+    permission_classes = [IsAuthenticated]
+    # lookup_field = 'pk'
+
+    def get_object(self):
+        pk = self.kwargs.get('pk')
+
+        student = Student.objects.prefetch_related('course', 'user').get(pk=pk)
+
+        # Check if the authenticated user is an admin or the student being requested
+        user = self.request.user
+        if not user.is_authenticated or (not user.is_staff and student.user != user):
+            raise PermissionDenied("You do not have permission to perform this action.")
+
+        return student
+
+    # def get_object(self):
+    #     user = self.request.user
+    #     student = Student.objects.get(user=user)
+    #
+    #     return student
+
+
+class PaymentCreateView(generics.CreateAPIView):
+    queryset = AdminPayment.objects.all()
+    serializer_class = AdminPaymentSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
