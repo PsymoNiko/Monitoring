@@ -23,12 +23,17 @@ class MentorExerciseSerializer(serializers.ModelSerializer):
         student_names = validated_data.pop('student_name', [])
         send_to_all = validated_data.pop('send_to_all', False)
         if send_to_all:
-            students = Student.objects.all()
+            # students = Student.objects.all()
+            
+            students = Student.objects.filter(course=self.context.get('course_name'))
+    
         else:
            #fore more than one student
-            students = Student.objects.filter(last_name__in=student_names) 
+            # students = Student.objects.filter(last_name__in=student_names) 
             #for jast one student
             # students = student_names
+
+            students = Student.objects.filter(last_name__in=student_names, course=self.context.get('course_name'))
             
         exercise = MentorExerciseModel.objects.create(**validated_data)
         exercise.student_name.set(students)

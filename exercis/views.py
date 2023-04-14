@@ -22,7 +22,9 @@ class MentorPanelPost(APIView):
 
     def post(self,request, *args, **kwargs):
 
-        serializer = MentorExerciseSerializer(data=request.data)
+        # serializer = MentorExerciseSerializer(data=request.data)
+        serializer = MentorExerciseSerializer(data=request.data, context={'request': request, 'course_name': request.data.get('course_name')})
+
         serializer.is_valid(raise_exception=True)
         
         # serializer.save(mentor=request.user)

@@ -11,7 +11,7 @@ from ceo.models import Course
 class MentorExerciseModel(models.Model):
     mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE, related_name='mentor_exercise_model')
     course_name = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='course_name')
-    student_name = models.ManyToManyField(Student, related_name='assigned_exercises')
+    student_name = models.ManyToManyField(Student, related_name='assigned_exercises', null=True, blank=True)
     send_to_all = models.BooleanField(default=False)
     exercise_name = models.CharField(max_length=200)
     is_seen_by_mentor = models.BooleanField(default=False)
