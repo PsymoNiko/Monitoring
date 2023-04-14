@@ -4,10 +4,6 @@ from django.contrib.auth import authenticate, get_user_model
 
 from .models import Mentor
 
-<<<<<<< HEAD
-=======
-
->>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8
 class CustomAuthentication(BaseAuthentication):
     def authenticate(self, request):
         username = request.data.get('username')
@@ -23,8 +19,4 @@ class CustomAuthentication(BaseAuthentication):
                 token, created = Token.objects.get_or_create(user=user)
                 return (user, token.key)
         except Mentor.DoesNotExist:
-<<<<<<< HEAD
             raise Warning('Invalid username/password')
-=======
-            raise Warning('Invalid username/password')
->>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8

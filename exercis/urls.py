@@ -5,7 +5,7 @@ from .views import MentorPanelPost
 
 urlpatterns = [
     #mentor
-    path('exercises/send-mentor/', MentorPanelPost.as_view(), name='send_mentor'),
+    path('send-mentor/', MentorPanelPost.as_view(), name='send_mentor'),
     # path('exercises/get-mentor/', MentorPanelGet.as_view(), name='get_mentor'),
 
     # # path('exerciseassignment/<int:pk>/', ExerciseAssignmentView.as_view(), name='exercise_assignment'),

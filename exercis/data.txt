@@ -1,0 +1,25 @@
+ for more than one student
+
+{ "mentor": 1,
+    "course_name": 1,
+    "send_to_all": false,
+    "exercise_name": "task2",
+    "caption": "z",
+    "student_name": ["1", "2"]
+}
+
+ if use send to all
+ { 
+    "mentor": 1,
+    "course_name": 1,
+    "send_to_all": true,
+    "exercise_name": "task2",
+    "caption": "z"
+}
+{ "student_name":[1],
+    "mentor": 1,
+    "course_name": 1,
+    "send_to_all": true,
+    "exercise_name": "task2",
+    "caption": "z"
+}

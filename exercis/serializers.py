@@ -1,48 +1,48 @@
 from rest_framework import serializers
 from .models import StudentExerciseModel,MentorExerciseModel, ExerciseAssignment, ExerciseFile
 from student.models import Student
-
-
-
+from mentor.models import Mentor
+from ceo.models import Course
 
 
 
 class MentorExerciseSerializer(serializers.ModelSerializer):
-    # send_to_all = serializers.BooleanField(default=False)
-    # student_names = serializers.ListField(child=serializers.CharField(), required=False)
+    course_name = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all(), default=serializers.CurrentUserDefault())
+
+    # student_name = serializers.ListField(child=serializers.IntegerField(), required=False)
+    # student_name = serializers.ListField(child=serializers.CharField(max_length=255), required=False)
+    def get_queryset(self):
+        return Course.objects.filter(owner=self.context['request'].user)
 
     class Meta:
         model = MentorExerciseModel
-        # fields = '__all__'
-        fields = ['mentor','course_name', 'student_name', 'send_to_all', 'exercise_name', 'caption']
-        read_only_fields = ['created_at', 'modified_at', 'is_seen_by_mentor','is_deleted']
-# 
-    # def send_to_all(self, obj):
-    #     value = self.context['request'].data.get('send_to_all')
-    #     if value is not None:
-    #         return value.lower() == 'true'
-    #     return False
+        fields = '__all__'
 
-    # def validate(self, data):
-    #     student_name = data.get('student_name')
-    #     send_to_all = data.get('send_to_all')
 
-    #     if not student_name and not send_to_all:
-    #         raise serializers.ValidationError('Either student_name or send_to_all must be provided.')
-    #     if student_name and send_to_all:
-    #         raise serializers.ValidationError('Only one of student_name or send_to_all can be provided.')
+    def create(self, validated_data):
+        student_names = validated_data.pop('student_name', [])
+        send_to_all = validated_data.pop('send_to_all', False)
+        if send_to_all:
+            students = Student.objects.all()
+        else:
+           #fore more than one student
+            students = Student.objects.filter(last_name__in=student_names) 
+            #for jast one student
+            # students = student_names
+            
+        exercise = MentorExerciseModel.objects.create(**validated_data)
+        exercise.student_name.set(students)
+       
+   
+        return exercise
 
-    #     return data
+
 
 
 class ExerciseAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExerciseAssignment
         fields = '__all__'
-
-
-
-
 
 
 

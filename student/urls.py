@@ -9,16 +9,8 @@ urlpatterns = [
     path('login2/', TokenObtainPairView.as_view(serializer_class=StudentTokenObtainPairSerializer)),
     path('login/', LoginViewAsStudent.as_view()),
     path('detail/', StudentDetails.as_view()),
-<<<<<<< HEAD
     path('detail2/<int:pk>/', StudentDetailView.as_view()),
 
     # Report
     path('create-report/', DailyReportView.as_view()),
 ]
-=======
-    path('detail2/<int:pk>/', StudentDetailView.as_view(), name='student-detail'),
-
-    # Report
-    path('create-report/', DailyReportView.as_view()),
-]
->>>>>>> baa25d8406b5bc6065395071fe8c7c8f0f23acc8

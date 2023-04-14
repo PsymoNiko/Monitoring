@@ -11,18 +11,20 @@ from .serializers import (
     # ExerciseAssignmentSerializer
 )
 
-from student.models import Student
-from mentor.models import Mentor
+# from student.models import Student
+# from mentor.models import Mentor
 
 class MentorPanelPost(APIView):
-    serializer_class = MentorExerciseSerializer
+    # serializer_class = MentorExerciseSerializer
 
-    def get_serializer(self, *args, **kwargs):
-        return self.serializer_class(*args, **kwargs)
+    # def get_serializer(self, *args, **kwargs):
+    #     return self.serializer_class(*args, **kwargs)
 
     def post(self,request, *args, **kwargs):
+
         serializer = MentorExerciseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        serializer.save(owner=request.user)
+        # serializer.save(mentor=request.user)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
