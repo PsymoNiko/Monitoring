@@ -44,5 +44,4 @@ urlpatterns = [
     path('mentor/', include('mentor.urls')),
     path('student/', include('student.urls')),
     path("chat/", include("Chat.urls")),
-
 ]
