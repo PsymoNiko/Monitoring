@@ -2,5 +2,5 @@ venv
 *env
 .env
 db.sqlite3
-*__pycache__
+__pycache__/
 profile_images
