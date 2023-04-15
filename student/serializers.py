@@ -1,4 +1,5 @@
 import re
+from datetime import datetime, timedelta
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -6,9 +7,9 @@ from django.shortcuts import reverse
 from django.db import IntegrityError
 from django.db import transaction
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator
 
 from .models import Student, Report, Payment
-
 from ceo.models import Course
 from monitoring.utils import *
 
@@ -145,27 +146,36 @@ class LoginViewAsStudentSerializer(serializers.ModelSerializer):
 
 
 class ReportSerializer(serializers.ModelSerializer):
-    report_number = serializers.IntegerField(default=0)
-    report_text = serializers.CharField(required=True)
-    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    created_at = serializers.DateTimeField(read_only=True)
-    deadline = serializers.DateTimeField(required=True)
-    delayed = serializers.BooleanField(read_only=True)
-    study_amount = serializers.CharField(max_length=4, required=True)
+    url = serializers.HyperlinkedIdentityField(view_name='report-detail', lookup_field='report_number')
+    student_first_name = serializers.CharField(source='student.first_name', read_only=True)
+    student_last_name = serializers.CharField(source='student.last_name', read_only=True)
+    student_course = serializers.CharField(source='student.course', read_only=True)
+    report_number = serializers.IntegerField(read_only=True, validators=[MinValueValidator(1)])
+    created_through_command = serializers.BooleanField(default=False, read_only=True)
+    time_of_submit = serializers.DateTimeField(default=datetime.now().strftime('%Y-%m-%d %H:%M:%S'), read_only=True)
+    create_at = serializers.DateTimeField(read_only=True)
+    modified_at = serializers.DateTimeField(read_only=True)
+    is_deleted = serializers.BooleanField(default=False, read_only=True)
+    delay = serializers.SerializerMethodField()
+
+    def get_delay(self, obj):
+        time_of_submit = obj.time_of_submit
+        modified_at = obj.modified_at
+        time_difference = modified_at - time_of_submit
+        delay = time_difference - timedelta(microseconds=time_difference.microseconds)
+        return str(delay)
 
     class Meta:
         model = Report
-        fields = ('report_number', 'report_text', 'user',
-                  'created_at', 'deadline', 'delayed',
-                  'study_amount')
-        read_only_fields = ['id', 'delayed', 'created_at', 'user']
+        fields = (
+            'student_first_name', 'student_last_name', 'student_course', 'report_text', 'study_amount', 'report_number',
+            'created_through_command', 'time_of_submit', 'create_at', 'modified_at', 'is_deleted', 'url', 'delay'
+        )
 
     def create(self, validated_data):
-        user = self.context['request'].user
-        student = Student.objects.get(user=user)
-        validated_data['user'] = student
-        validated_data['created_at'] = datetime.now()
-        report = super().create(validated_data)
+        student = validated_data['student']
+        existing_report_count = Report.objects.filter(student=student).count()
+        report = Report.objects.create(report_number=existing_report_count + 1, **validated_data)
         return report
 
 

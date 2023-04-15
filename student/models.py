@@ -68,14 +68,14 @@ class StudentSettings(models.Model):
 
 
 class Report(models.Model):
-    student = models.OneToOneField(Student, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
     report_text = models.TextField()
-    report_number = models.PositiveIntegerField(default=1)
-    amount_of_study = models.PositiveIntegerField()
-    is_submitted = models.BooleanField(default=True)
-    date_of_reporting = models.DateField()
+    study_amount = models.FloatField()
+    report_number = models.IntegerField()
+    created_through_command = models.BooleanField(default=False)
+    time_of_submit = models.DateTimeField(auto_now_add=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    create_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
 
