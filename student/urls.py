@@ -11,4 +11,7 @@ urlpatterns = [
     path('detail2/<int:pk>/', views.StudentDetailView.as_view()),
     path('reports/', views.ReportListCreateView.as_view(), name='report-list-create'),
     path('reports/<int:report_number>/', views.ReportRetrieveView.as_view(), name='report-detail'),
+    path('reports/unsubmitted/', views.ListOfUnSubmittedReportsAPIView.as_view(), name='un-submitted-list'),
+    path('reports/unsubmitted/<int:report_number>/',
+         views.UpdateUnSubmittedReportAPIView.as_view(), name='un-submitted'),
 ]

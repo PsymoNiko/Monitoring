@@ -1,4 +1,4 @@
-from django.db.models import Sum
+from django.utils import timezone
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -99,3 +99,69 @@ class ReportRetrieveView(generics.RetrieveAPIView):
             raise NotFound('Student not found')
         queryset = Report.objects.filter(student=student, student__user=self.request.user.id)
         return queryset
+
+
+class DailyReportView(generics.ListCreateAPIView):
+    serializer_class = ReportSerializer
+
+    def get_queryset(self):
+        # Get the current date and time
+        current_time = timezone.now()
+
+        # Get all students
+        students = Student.objects.all()
+
+        # Get the report numbers of all reports submitted by each student for today
+        submitted_reports = Report.objects.filter(
+            time_of_submit__date=current_time.date()
+        ).values_list('student', 'report_number')
+
+        # Find students who have not submitted their report for today
+        missing_reports = []
+        for student in students:
+            # Check if the student has already submitted a report for today
+            if (student.id, current_time.date().strftime('%Y%m%d')) not in submitted_reports:
+                missing_reports.append(student)
+
+        # Return the missing reports
+        return missing_reports
+
+    def post(self, request, *args, **kwargs):
+        # Get the list of missing reports
+        missing_reports = self.get_queryset()
+
+        # Create a new report for each missing report
+        for student in missing_reports:
+            report_number = Report.objects.filter(student=student).count() + 1
+            report_data = {
+                'student': student.id,
+                'report_text': '',
+                'study_amount': 0,
+                'report_number': report_number,
+                'is_submitted': False,
+            }
+            serializer = ReportSerializer(data=report_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+        return Response(status=status.HTTP_201_CREATED)
+
+
+class ListOfUnSubmittedReportsAPIView(generics.ListAPIView):
+    serializer_class = ReportSerializer
+
+    def get_queryset(self):
+        student = Student.objects.get(user=self.request.user.id)
+        queryset = Report.objects.filter(student=student, created_through_command=True)
+        return queryset
+
+
+class UpdateUnSubmittedReportAPIView(generics.UpdateAPIView):
+    serializer_class = ReportSerializer
+    lookup_field = 'report_number'
+
+    def get_queryset(self):
+        student = Student.objects.get(user=self.request.user.id)
+        queryset = Report.objects.filter(student=student, created_through_command=True)
+        return queryset
+

@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import validators as validators
 from rest_framework import serializers
@@ -136,18 +136,25 @@ class ReportSerializer(serializers.ModelSerializer):
     student_last_name = serializers.CharField(source='student.last_name', read_only=True)
     student_course = serializers.CharField(source='student.course', read_only=True)
     report_number = serializers.IntegerField(read_only=True, validators=[MinValueValidator(1)])
-    is_submitted = serializers.BooleanField(default=True, read_only=True)
+    created_through_command = serializers.BooleanField(default=False, read_only=True)
     time_of_submit = serializers.DateTimeField(default=datetime.now().strftime('%Y-%m-%d %H:%M:%S'), read_only=True)
     create_at = serializers.DateTimeField(read_only=True)
     modified_at = serializers.DateTimeField(read_only=True)
     is_deleted = serializers.BooleanField(default=False, read_only=True)
-    # student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.filter())
+    delay = serializers.SerializerMethodField()
+
+    def get_delay(self, obj):
+        time_of_submit = obj.time_of_submit
+        modified_at = obj.modified_at
+        time_difference = modified_at - time_of_submit
+        delay = time_difference - timedelta(microseconds=time_difference.microseconds)
+        return str(delay)
 
     class Meta:
         model = Report
         fields = (
             'student_first_name', 'student_last_name', 'student_course', 'report_text', 'study_amount', 'report_number',
-            'is_submitted', 'time_of_submit', 'create_at', 'modified_at', 'is_deleted', 'url'
+            'created_through_command', 'time_of_submit', 'create_at', 'modified_at', 'is_deleted', 'url', 'delay'
         )
 
     def create(self, validated_data):
@@ -155,19 +162,3 @@ class ReportSerializer(serializers.ModelSerializer):
         existing_report_count = Report.objects.filter(student=student).count()
         report = Report.objects.create(report_number=existing_report_count + 1, **validated_data)
         return report
-
-    # def create(self, validated_data):
-    #     # Retrieve the student object for the currently logged in user
-    #     student = self.context['request'].user.student
-    #
-    #     # Do not allow student to create report for another student
-    #     validated_data['student'] = student
-    #
-    #     # Set the report number based on the number of existing reports for the student
-    #     existing_report_count = Report.objects.filter(student=student).count()
-    #     validated_data['report_number'] = existing_report_count + 1
-    #
-    #     report = Report.objects.create(**validated_data)
-    #     return report
-
-

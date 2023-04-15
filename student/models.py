@@ -79,22 +79,11 @@ class Report(models.Model):
     report_text = models.TextField()
     study_amount = models.FloatField()
     report_number = models.IntegerField()
-    is_submitted = models.BooleanField(default=False)
+    created_through_command = models.BooleanField(default=False)
     time_of_submit = models.DateTimeField(auto_now_add=True)
     create_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
-    # deadline = models.DateTimeField(default=datetime.datetime.)
-    #
-    # @property
-    # def delay(self):
-    #     if self.is_submitted:
-    #         if self.time_of_submit <= self.deadline:
-    #             return datetime.timedelta()
-    #         else:
-    #             return self.time_of_submit - self.deadline
-    #     else:
-    #         return None
 
 
 
