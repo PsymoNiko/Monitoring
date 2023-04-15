@@ -1,3 +1,7 @@
+ 
+ for send exercise by mentor
+ 
+ 
  for more than one student
 
 { "mentor": 1,
@@ -23,3 +27,16 @@
     "exercise_name": "task2",
     "caption": "z"
 }
+
+
+
+
+for send exercise by student
+{
+  "student": 1,
+  "mentor": 1,
+  "exercise_text": "Write a program to calculate the sum of two numbers"
+}
+
+
+

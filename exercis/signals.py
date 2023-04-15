@@ -12,9 +12,9 @@ def mark_exercise_as_seen(sender, instance, created, **kwargs):
             instance.save()
 
 
-@receiver(post_save, sender=StudentExerciseModel)
-def set_done_student(sender, instance, **kwargs):
-    exercise = instance.exercise
-    exercise.is_done_exercise = True
-    exercise.save()
+# @receiver(post_save, sender=StudentExerciseModel)
+# def set_done_student(sender, instance, **kwargs):
+#     exercise = instance.exercise
+#     exercise.is_done_exercise = True
+#     exercise.save()
 
