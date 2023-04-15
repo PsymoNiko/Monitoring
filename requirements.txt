@@ -36,3 +36,4 @@ djangorestframework-simplejwt==5.2.2
 python-dotenv
 pull redis
 channels_redis
+djangorestframework-simplejwt

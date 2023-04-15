@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'DailyReport',
     # framework
     "rest_framework",
+    "rest_framework_simplejwt",
     'rest_framework.authtoken',
 
 ]
@@ -163,4 +164,9 @@ REST_FRAMEWORK = {
 
         'mentor.authentication.CustomAuthentication',
     ),
+}
+from datetime import timedelta
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1)
 }

@@ -33,13 +33,10 @@ class Message(models.Model):
     def __str__(self):
         return f'{self.user.username}: {self.content} [{self.timestamp}]'
 
+# class Chat(models.Model):
+#     student = models.OneToOneField(Course, on_delete=models.CASCADE, related_name='student_chat')
+#     mentor = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='mentor_chat')
+#     students = models.OneToOneField(Mentor, on_delete=models.CASCADE)
 
-class Chat(models.Model):
-    student = models.OneToOneField(Course, on_delete=models.CASCADE, related_name='student_chat')
-    mentor = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='mentor_chat')
-    students = models.OneToOneField(Mentor, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'{self.mentor} - {self.student}'
 
 # Create your models here.
