@@ -1,13 +1,17 @@
+import redis
+
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from django.db import IntegrityError
 from django.db import transaction
-
 from django.contrib.auth.models import User
+from django.conf import settings
+from django.core.cache import cache
+
 from .models import Course, DailyNote
 from mentor.models import Mentor
 from student.serializers import StudentSerializer
-from student.models import AdminPayment
+from student.models import AdminPayment, Student
 from monitoring.utils import *
 
 
@@ -61,13 +65,12 @@ class CourseSerializers(serializers.ModelSerializer):
         except IntegrityError:
             raise serializers.ValidationError('please a start_at date')
 
-
     class Meta:
         model = Course
-        fields = ('id', 'name', 'mentor', 'students', 'jalali_start_at', 'start_at', 'days_of_week', 'duration', 'class_time',
-                  'how_to_hold', 'short_brief', 'url')
+        fields = (
+            'id', 'name', 'mentor', 'students', 'jalali_start_at', 'start_at', 'days_of_week', 'duration', 'class_time',
+            'how_to_hold', 'short_brief', 'url')
         read_only_fields = ['id', 'jalali_start_at', 'start_at', 'students']
-
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
@@ -83,16 +86,78 @@ class CourseSerializers(serializers.ModelSerializer):
 
 class DailyNoteSerializers(serializers.ModelSerializer):
     daily_note = serializers.CharField()
+
     # created_at = JDateField(format='%Y-%m-%d')
     class Meta:
         model = DailyNote
         fields = ('daily_note', 'created_at',)
 
 
+#
+# class AdminPaymentSerializer(serializers.ModelSerializer):
+#     student = serializers.ReadOnlyField(source='student.id')
+#
+#     class Meta:
+#         model = AdminPayment
+#         fields = ('student', 'amount_of_receipt', 'receipt_count', 'date')
 
 class AdminPaymentSerializer(serializers.ModelSerializer):
-    student = serializers.ReadOnlyField(source='student.id')
+    student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
+    total_payment = serializers.CharField(max_length=9)
+    receipt_count_during_course_length = serializers.IntegerField(read_only=True)
+    date = JalaliDateField()
+    jalali_date = serializers.CharField(required=False, allow_blank=True, max_length=10)
+    amount_of_receipt_of_each_month = serializers.SerializerMethodField()
+
+    def get_amount_of_receipt_of_each_month(self, obj):
+        total_payment = obj.total_payment
+        receipt_count = obj.receipt_count_during_course_length
+        amount_of_receipt_of_each_month = int(total_payment) / receipt_count
+        return round(amount_of_receipt_of_each_month, 2)
+
+    def create(self, validated_data):
+        j_date = validated_data.pop('jalali_date', None)
+        if not j_date:
+            raise serializers.ValidationError({'jalali_date_of_birth': 'This field is required.'})
+        validated_data['date'] = convert_jalali_to_gregorian(j_date)
+
+        student = validated_data['student']
+        course_duration_in_months = student.course.duration
+        total_payment = float(validated_data['total_payment'])
+        receipt_count = round(total_payment / course_duration_in_months, 2)
+
+        validated_data['receipt_count_during_course_length'] = course_duration_in_months
+        admin_payment = AdminPayment.objects.create(**validated_data)
+
+        # redis_connection = redis.Redis(host=settings.CACHES['default']['LOCATION'], db=0)
+        # redis_connection = cache.client.get_client(write=True)
+        # redis_connection.set(f"student_{admin_payment.student.id}_amount",
+        #                      admin_payment.amount_of_receipt_of_each_month)
+        # redis_connection.set(f'student_{admin_payment.student.id}_receipt',
+        #                      admin_payment.receipt_count_during_course_length)
+        # redis_connection.set(f'student_{admin_payment.student.id}_total_payment',
+        #                      admin_payment.total_payment)
+        if hasattr(admin_payment, 'amount_of_receipt_of_each_month'):
+            redis_connection = redis.Redis(host=settings.CACHES['default']['LOCATION'], db=0)
+            redis_connection.set(f"student_{admin_payment.student.id}_amount",
+                                 admin_payment.amount_of_receipt_of_each_month)
+            redis_connection.set(f'student_{admin_payment.student.id}_receipt',
+                                 admin_payment.receipt_count_during_course_length)
+            redis_connection.set(f'student_{admin_payment.student.id}_total_payment',
+                                 admin_payment.total_payment)
+
+        # if hasattr(admin_payment, 'amount_of_receipt_of_each_month'):
+        #     redis_connection = redis.Redis(host=settings.CACHES['default']['LOCATION'], db=0)
+        #     redis_connection.hset(f"student_{admin_payment.student.id}", "amount",
+        #                           admin_payment.amount_of_receipt_of_each_month)
+        #     redis_connection.hset(f"student_{admin_payment.student.id}", "receipt",
+        #                           admin_payment.receipt_count_during_course_length)
+        #     redis_connection.hset(f"student_{admin_payment.student.id}", "total_payment",
+        #                           admin_payment.total_payment)
+
+        return admin_payment
 
     class Meta:
         model = AdminPayment
-        fields = ['student', 'amount_of_receipt', 'receipt_count', 'date']
+        fields = ('id', 'student', 'amount_of_receipt_of_each_month', 'receipt_count_during_course_length',
+                  'date', 'jalali_date', 'total_payment')

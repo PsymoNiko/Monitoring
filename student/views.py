@@ -1,3 +1,5 @@
+import redis
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, authentication, permissions, generics, viewsets
@@ -13,7 +15,7 @@ from django.contrib.auth import authenticate, login
 from .models import Student, Payment, Report
 # from ceo.models import Admin
 from .serializers import StudentSerializer, StudentTokenObtainPairSerializer,\
-    LoginViewAsStudentSerializer, ReportSerializer, PaymentSerializer
+    LoginViewAsStudentSerializer, ReportSerializer#, PaymentSerializer
 
 from django.shortcuts import redirect
 from rest_framework.authtoken.models import Token
@@ -207,7 +209,11 @@ class UpdateUnSubmittedReportAPIView(generics.UpdateAPIView):
         return queryset
 
 
-class PaymentViewSet(viewsets.ModelViewSet):
-    queryset = Payment.objects.all()
-    serializer_class = PaymentSerializer
+# class PaymentViewSet(viewsets.ModelViewSet):
+#     queryset = Payment.objects.all()
+#     serializer_class = PaymentSerializer
+
+
+
+
 

@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, AbstractBaseUser, PermissionsMixin
 
-
 from mentor.models import Mentor
 from ceo.models import Course
 
@@ -79,7 +78,6 @@ class Report(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
 
-
     # report_number = models.IntegerField(default=0)
     # report_text = models.TextField()
     # user = models.OneToOneField(Student, on_delete=models.CASCADE)
@@ -103,8 +101,8 @@ class Payment(models.Model):
 class AdminPayment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='admin_payments')
     # payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='admin_payments')
-    amount_of_receipt = models.CharField(max_length=9)
-    receipt_count = models.IntegerField()
+    total_payment = models.CharField(max_length=9)
+    receipt_count_during_course_length = models.IntegerField()
     date = models.DateField()
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -112,15 +110,16 @@ class AdminPayment(models.Model):
     is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.student} you have to pay {self.amount_of_receipt} on {self.date}"
+        return f"{self.student} you have to pay {self.total_payment} on {self.date}"
 
     @classmethod
-    def create(cls, student, receipt_count, date):
+    def create(cls, student, receipt_count_during_course_length, date):
         # Get the amount_of_receipt from the student
-        amount_of_receipt = student.amount_of_receipt
+        total_payment = student.total_payment
 
         # Create a new AdminPayment object with the values passed as arguments
-        admin_payment = cls(student=student, amount_of_receipt=amount_of_receipt, receipt_count=receipt_count, date=date)
+        admin_payment = cls(student=student, amount_of_receipt=total_payment,
+                            receipt_count_during_course_length=receipt_count_during_course_length, date=date)
 
         # Save the new AdminPayment object to the database
         admin_payment.save()

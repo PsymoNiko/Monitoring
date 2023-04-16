@@ -6,7 +6,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import LoginViewAsAdmin, MentorCreateView, StudentCreateView, CustomRedirectView, LogoutAPIView, \
     LoginViews, ApiRootView, CourseCreateView, CourseListView, CourseRetrieveUpdateDeleteView,\
     StudentListView, StudentDetailView, AdminDailyNotesCreation, AdminDailyNotesList,\
-    ListStudentOfEachCourse, AdminStudentOfEachClass, PaymentCreateView
+    ListStudentOfEachCourse, AdminStudentOfEachClass, PaymentCreateView, StudentPaymentView
 from .authentication import ObtainTokenPairView
 
 # from django.urls import reverse
@@ -46,5 +46,6 @@ urlpatterns = [
 
     # Payment
     path('pay/', PaymentCreateView.as_view()),
+    path('read-pay/<int:pk>/', StudentPaymentView.as_view()),
     # path('payment/', CreateAdminPaymentView.as_view()),
 ]

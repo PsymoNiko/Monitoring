@@ -9,7 +9,7 @@ from django.db import transaction
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 
-from .models import Student, Report, Payment
+from .models import Student, Report, Payment, AdminPayment
 from ceo.models import Course
 from monitoring.utils import *
 
@@ -179,7 +179,38 @@ class ReportSerializer(serializers.ModelSerializer):
         return report
 
 
-class PaymentSerializer(serializers.ModelSerializer):
+class AdminPaymentSerializer(serializers.ModelSerializer):
+    # student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
+    student = serializers.SlugRelatedField(queryset=Student.objects.all(), slug_field='first_name')
+    amount_of_receipt = serializers.CharField(max_length=9)
+    receipt_count = serializers.IntegerField()
+    date = JalaliDateField()
+    jalali_date = serializers.CharField(required=False, allow_blank=True, max_length=10)
+
+    def create(self, validated_data):
+        j_date = validated_data.pop('jalali_date', None)
+        if not j_date:
+            raise serializers.ValidationError({'jalali_date_of_birth': 'This field is required.'})
+        validated_data['date'] = convert_jalali_to_gregorian(j_date)
+        admin_payment = AdminPayment.objects.create(**validated_data)
+        return admin_payment
+
     class Meta:
-        model = Payment
-        fields = '__all__'
+        model = AdminPayment
+        fields = ('student', 'amount_of_receipt', 'receipt_count', 'date', 'jalali_date')
+
+
+# class PaymentSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Payment
+#         fields = '__all__'
+
+
+
+class StudentPaymentSerializer(serializers.ModelSerializer):
+    amount_of_receipt_of_each_month = serializers.SerializerMethodField()
+    receipt_count_during_course_length = serializers.SerializerMethodField()
+    total_payment = serializers.CharField(max_length=9)
+
+    def get_amount_of_receipt_of_each_month(self, obj):
+        pass

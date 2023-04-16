@@ -1,8 +1,13 @@
+import django_redis
+import redis
+
 from django.contrib.auth import authenticate, login
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
+from django.conf import settings
+from django.core.cache import cache
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -17,6 +22,8 @@ from student.models import Student, AdminPayment
 from student.serializers import StudentSerializer
 from .serializers import LoginViewAsAdminSerializer, CourseSerializers, DailyNoteSerializers, AdminPaymentSerializer
 
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.views import LogoutView
@@ -28,22 +35,30 @@ class LoginViewAsAdmin(generics.CreateAPIView):
     serializer_class = LoginViewAsAdminSerializer
 
     def create(self, request, *args, **kwargs):
-        # Get the username and password from the request data
         username = request.data.get('username')
         password = request.data.get('password')
 
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-
             login(request, user)
-
-            # serializer = LoginViewAsAdminSerializer(user)
             return Response(self.get_serializer(user).data, status=status.HTTP_200_OK)
-
         else:
-
             return Response({"error": "Invalid username  or password"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+# class LoginViewAsAdmin(TokenObtainPairView):
+#     serializer_class = TokenObtainPairSerializer
+#
+#     def post(self, request, *args, **kwargs):
+#         response = super().post(request, *args, **kwargs)
+#         refresh_token = response.data['refresh']
+#         access_token = response.data['access']
+#
+#         return Response({
+#             'refresh_token': refresh_token,
+#             'access_token': access_token,
+#         }, status=status.HTTP_200_OK)
 
 
 class ApiRootView(APIView):
@@ -64,6 +79,7 @@ class ApiRootView(APIView):
 class MentorCreateView(generics.CreateAPIView):
     serializer_class = MentorSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
+    # authentication_classes = [JWTAuthentication]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -84,8 +100,8 @@ class MentorCreateView(generics.CreateAPIView):
 class StudentCreateView(generics.CreateAPIView):
     serializer_class = StudentSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
+    # authentication_classes = [JWTAuthentication]
     queryset = Student.objects.all()
-
 
     def create(self, request, *args, **kwargs):
         request_data = request.data.copy()
@@ -150,18 +166,21 @@ class LoginViews(APIView):
 class CourseCreateView(generics.CreateAPIView):
     serializer_class = CourseSerializers
     permission_classes = [IsAuthenticated, IsAdminUser]
+    # authentication_classes = [JWTAuthentication]
     queryset = Course.objects.all()
 
 
 class CourseListView(generics.ListAPIView):
     queryset = Course.objects.all()
     permission_classes = [IsAuthenticated, IsAdminUser]
+    # authentication_classes = [JWTAuthentication]
     serializer_class = CourseSerializers
 
 
 class CourseRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     permission_classes = [IsAuthenticated, IsAdminUser]
+    # authentication_classes = [JWTAuthentication]
     serializer_class = CourseSerializers
 
     def retrieve(self, request, *args, **kwargs):
@@ -187,6 +206,7 @@ class CourseRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 class StudentListView(generics.ListAPIView):
     queryset = Student.objects.all()
     permission_classes = [IsAuthenticated, IsAdminUser]
+    # authentication_classes = [JWTAuthentication]
     serializer_class = StudentSerializer
 
     def get_queryset(self):
@@ -198,12 +218,14 @@ class StudentListView(generics.ListAPIView):
 class StudentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    # authentication_classes = [JWTAuthentication]
 
 
 class AdminDailyNotesCreation(generics.CreateAPIView):
     serializer_class = DailyNoteSerializers
     permission_classes = [IsAuthenticated, IsAdminUser]
+    # authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         return DailyNote.objects.filter(user=self.request.user)
@@ -222,17 +244,8 @@ class AdminDailyNotesList(generics.ListAPIView):
     queryset = DailyNote.objects.order_by('-created_at')
     serializer_class = DailyNoteSerializers
     permission_classes = [IsAuthenticated, IsAdminUser]
+    # authentication_classes = [JWTAuthentication]
     pagination_class = DailyNotePagination
-
-    # def list(self, request, *args, **kwargs):
-    #     page_offset = int(request.query_params.get('page_offset', 1))
-    #     if page_offset < 1:
-    #         page_offset = 1
-    #     self.paginator.page = page_offset
-    #     paginator = Paginator(self.queryset, self.pagination_class.page_size, allow_empty_first_page=True)
-    #     page = paginator.get_page(paginator.validate_number(page_offset))
-    #     serializer = self.get_serializer(page, many=True)
-    #     return Response(serializer.data)
 
     def get_queryset(self):
         return DailyNote.objects.filter(user=self.request.user)
@@ -245,6 +258,7 @@ class ListStudentOfEachCourse(generics.ListAPIView):
     # queryset = Course.objects.prefetch_related('student_course')
     serializer_class = CourseSerializers
     permission_classes = [IsAuthenticated, IsAdminUser]
+    # authentication_classes = [JWTAuthentication]
     queryset = Course.objects.all()
 
     def get_queryset(self):
@@ -274,6 +288,8 @@ class AdminStudentOfEachClass(generics.RetrieveDestroyAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
     permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
+
     # lookup_field = 'pk'
 
     def get_object(self):
@@ -296,6 +312,39 @@ class AdminStudentOfEachClass(generics.RetrieveDestroyAPIView):
 
 
 class PaymentCreateView(generics.CreateAPIView):
-    queryset = AdminPayment.objects.all()
+    # queryset = AdminPayment.objects.all()
     serializer_class = AdminPaymentSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    # permission_classes = [IsAuthenticated, IsAdminUser]
+    # authentication_classes = [JWTAuthentication]
+
+
+class StudentPaymentView(generics.RetrieveAPIView):
+    serializer_class = AdminPaymentSerializer
+
+    def get(self, request, pk):
+        student = get_object_or_404(Student, pk=pk)
+
+        # redis_connection = redis.Redis(host=settings.CACHES['default']['LOCATION'], db=0)
+        redis_connection = cache.client.get_client(write=True)
+        # redis_connection = django_redis.get_redis_connection('default').client.get_client()
+        amount = redis_connection.get(f"student_{pk}_amount")
+        receipt = redis_connection.get(f"student_{pk}_receipt")
+        total_payment = redis_connection.get(f"student_{pk}_total_payment")
+
+        if amount and receipt and total_payment:
+            data = {
+                "student_name": f"{student.first_name} {student.last_name}",
+                "amount_of_receipt_of_each_month": float(amount),
+                "receipt_count_during_course_length": int(receipt),
+                "total_payment": total_payment.decode('utf-8')
+            }
+        # else:
+        #     admin_payment = student.admin_payments.order_by('-date').first()
+        #     serializer = self.serializer_class(admin_payment)
+        #     data = serializer.data
+        #
+        #     redis_connection.set(f'student_{pk}_amount', data['amount_of_receipt_of_each_month'])
+        #     redis_connection.set(f'student_{pk}_receipt', data['receipt_count_during_course_length'])
+        #     redis_connection.set(f'student_{pk}_total_payment', data['total_payment'])
+
+        return Response(data)
