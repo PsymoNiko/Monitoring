@@ -3,9 +3,11 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
-
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate, login
-
+from django.shortcuts import get_object_or_404
+from student.models import Report, Student, ReportComment
+from student.serializers import ReportSerializer, ReportCommentSerializer
 from .serializers import MentorSerializer, MyTokenObtainPairSerializer, LoginViewAsMentorSerializer
 from .models import Mentor
 
@@ -54,3 +56,22 @@ class CustomObtainAuthToken(ObtainAuthToken):
             'token': token.key,
             'refresh_token': token.get_refresh_token(),
         }, status=status.HTTP_200_OK)
+
+
+class RetrieveReports(generics.ListAPIView):
+    queryset = Report.objects.all()
+    serializer_class = ReportSerializer
+    ordering = ['-time_of_submit']
+
+
+class CreateReportComment(generics.CreateAPIView):
+    queryset = ReportComment.objects.all()
+    serializer_class = ReportCommentSerializer
+
+    def perform_create(self, serializer):
+        student_first_name = self.kwargs['student_first_name']
+        student_last_name = self.kwargs['student_last_name']
+        report_number = self.kwargs['report_number']
+        student = get_object_or_404(Student, first_name=student_first_name, last_name=student_last_name)
+        report = get_object_or_404(Report, student=student, report_number=report_number)
+        serializer.save(report=report)

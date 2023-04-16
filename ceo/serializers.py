@@ -4,7 +4,8 @@ from rest_framework import serializers
 from django.urls import reverse
 
 from django.contrib.auth.models import User
-from .models import Course
+
+from ceo.models import Course
 from mentor.models import Mentor
 
 
@@ -54,3 +55,6 @@ class CourseSerializers(serializers.ModelSerializer):
         instance.short_brief = validated_data.get("short_brief", instance.short_brief)
         instance.save()
         return instance
+
+
+

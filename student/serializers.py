@@ -1,14 +1,13 @@
 import re
 from datetime import datetime, timedelta
-
-import validators as validators
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.db import IntegrityError
 from django.db import transaction
 from django.contrib.auth.models import User
 
-from .models import Student, Report, Payment
+from .models import Student, Report, Payment, \
+    ReportComment, AdminReportComment
 from django.core.validators import MinValueValidator
 from ceo.models import Course
 
@@ -130,11 +129,65 @@ class PaymentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ReportCommentSerializer(serializers.ModelSerializer):
+    mentor_first_name = serializers.CharField(source='mentor.first_name', read_only=True)
+    mentor_last_name = serializers.CharField(source='mentor.last_name', read_only=True)
+
+    class Meta:
+        model = ReportComment
+        fields = (
+            'mentor', 'mentor_first_name', 'mentor_last_name',
+            'comment', 'created_at'
+        )
+
+    def create(self, validated_data, mentor=None, report=None):
+        mentor = mentor or validated_data['mentor']
+        report = report or validated_data['report']
+        if ReportComment.objects.filter(mentor=mentor, report=report).exists():
+            raise serializers.ValidationError('Comment already exists for this report.')
+        comment = ReportComment.objects.create(
+            mentor=mentor,
+            report=report,
+            comment=validated_data['comment']
+        )
+        return comment
+
+
+class AdminReportCommentSerializer(serializers.ModelSerializer):
+    admin = serializers.CharField()
+
+    class Meta:
+        model = AdminReportComment
+        fields = ('admin', 'comment', 'created_at')
+
+    def create(self, validated_data):
+        admin_username = validated_data['admin']
+        admin = User.objects.get(username=admin_username, is_staff=True)
+        report = validated_data['report']
+        if AdminReportComment.objects.filter(admin=admin, report=report).exists():
+            raise serializers.ValidationError('Comment already exists for this report.')
+        comment = AdminReportComment.objects.create(
+            admin=admin,
+            report=report,
+            comment=validated_data['comment']
+        )
+        return comment
+
+
 class ReportSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='report-detail', lookup_field='report_number')
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, obj):
+        student_first_name = obj.student.first_name.lower().replace(' ', '-')
+        student_last_name = obj.student.last_name.lower().replace(' ', '-')
+        report_number = obj.report_number
+        return f'http://127.0.0.1:8000/student/reports/{student_first_name}-{student_last_name}/{report_number}/'
+
     student_first_name = serializers.CharField(source='student.first_name', read_only=True)
     student_last_name = serializers.CharField(source='student.last_name', read_only=True)
     student_course = serializers.CharField(source='student.course', read_only=True)
+    course_start_date = serializers.DateField(source='course.start_at', read_only=True, allow_null=True)
+    course_duration = serializers.IntegerField(source='course.duration', read_only=True, allow_null=True)
     report_number = serializers.IntegerField(read_only=True, validators=[MinValueValidator(1)])
     created_through_command = serializers.BooleanField(default=False, read_only=True)
     time_of_submit = serializers.DateTimeField(default=datetime.now().strftime('%Y-%m-%d %H:%M:%S'), read_only=True)
@@ -142,6 +195,8 @@ class ReportSerializer(serializers.ModelSerializer):
     modified_at = serializers.DateTimeField(read_only=True)
     is_deleted = serializers.BooleanField(default=False, read_only=True)
     delay = serializers.SerializerMethodField()
+    mentor_comments = ReportCommentSerializer(many=True, read_only=True)
+    admin_comments = AdminReportCommentSerializer(many=True, read_only=True)
 
     def get_delay(self, obj):
         time_of_submit = obj.time_of_submit
@@ -153,8 +208,9 @@ class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = (
-            'student_first_name', 'student_last_name', 'student_course', 'report_text', 'study_amount', 'report_number',
-            'created_through_command', 'time_of_submit', 'create_at', 'modified_at', 'is_deleted', 'url', 'delay'
+            'student_first_name', 'student_last_name', 'student_course', 'course_start_date', 'course_duration',
+            'report_text', 'study_amount', 'report_number', 'created_through_command', 'time_of_submit',
+            'create_at', 'modified_at', 'is_deleted', 'url', 'delay', 'mentor_comments', "admin_comments"
         )
 
     def create(self, validated_data):
@@ -162,3 +218,27 @@ class ReportSerializer(serializers.ModelSerializer):
         existing_report_count = Report.objects.filter(student=student).count()
         report = Report.objects.create(report_number=existing_report_count + 1, **validated_data)
         return report
+
+
+class ReportCardSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, obj):
+        student_first_name = obj.student.first_name.lower().replace(' ', '-')
+        student_last_name = obj.student.last_name.lower().replace(' ', '-')
+        report_number = obj.report_number
+        return f'http://127.0.0.1:8000/student/reports/{student_first_name}-{student_last_name}/{report_number}/'
+
+    report_number = serializers.IntegerField(read_only=True, validators=[MinValueValidator(1)])
+
+    class Meta:
+        model = Report
+        fields = ('study_amount', 'report_number', 'url')
+
+
+class ReportSummarySerializer(serializers.Serializer):
+    report_count = serializers.IntegerField()
+    total_amount_of_study = serializers.FloatField()
+    expected_hour = serializers.IntegerField()
+    punishment_for_fraction_of_hour = serializers.IntegerField()
+    average_of_amount_of_report = serializers.FloatField()

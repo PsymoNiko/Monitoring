@@ -4,7 +4,8 @@ from django.contrib.auth.views import LogoutView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import LoginViewAsAdmin, MentorCreateView, StudentCreateView, CustomRedirectView, LogoutAPIView, \
-    LoginViews, ApiRootView, CourseCreateView, CourseListView, CourseRetrieveUpdateDeleteView
+    LoginViews, ApiRootView, CourseCreateView, CourseListView, CourseRetrieveUpdateDeleteView, \
+    RetrieveReportView, CreateReportComment
 from .authentication import ObtainTokenPairView
 
 # from django.urls import reverse
@@ -29,5 +30,9 @@ urlpatterns = [
 
     # path('logout/', LogoutView.as_view(), name='logout')
     path('logout/', LogoutAPIView.as_view(), name='logout'),
-    path('login2/', LoginViews.as_view())
+    path('login2/', LoginViews.as_view()),
+    path('reports/', RetrieveReportView.as_view(), name='students-reports'),
+    path('reports/<str:student_first_name>-<str:student_last_name>/<int:report_number>/comments/',
+         CreateReportComment.as_view(), name='report-comment-create')
+    # path('comment/', RetrieveReportAndCommentOnIt.as_view(), name='comment'),
 ]

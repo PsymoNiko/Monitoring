@@ -142,3 +142,5 @@ REST_FRAMEWORK = {
         'mentor.authentication.CustomAuthentication',
     ),
 }
+MINIMUM_AMOUNT_OF_STUDY = 8
+COST_OF_PUNISHMENT_PER_HOUR = 10000

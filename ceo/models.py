@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 
 from mentor.models import Mentor
-
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 
@@ -22,4 +21,5 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
+
 

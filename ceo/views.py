@@ -7,11 +7,11 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.reverse import reverse
-
+from django.shortcuts import get_object_or_404
 from mentor.serializers import MentorSerializer
 from mentor.models import Mentor
-from student.models import Student
-from student.serializers import StudentSerializer
+from student.models import Student, AdminReportComment
+from student.serializers import StudentSerializer, ReportSerializer, AdminReportCommentSerializer
 from .serializers import LoginViewAsAdminSerializer, CourseSerializers
 
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -19,6 +19,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.views import LogoutView
 
 from .models import Course
+from student.models import Report
 
 
 class LoginViewAsAdmin(generics.CreateAPIView):
@@ -148,3 +149,22 @@ class CourseListView(generics.ListAPIView):
 class CourseRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializers
+
+
+class RetrieveReportView(generics.ListAPIView):
+    queryset = Report.objects.all()
+    serializer_class = ReportSerializer
+    ordering = ['-time_of_submit']
+
+
+class CreateReportComment(generics.CreateAPIView):
+    queryset = AdminReportComment.objects.all()
+    serializer_class = AdminReportCommentSerializer
+
+    def perform_create(self, serializer):
+        student_first_name = self.kwargs['student_first_name']
+        student_last_name = self.kwargs['student_last_name']
+        report_number = self.kwargs['report_number']
+        student = get_object_or_404(Student, first_name=student_first_name, last_name=student_last_name)
+        report = get_object_or_404(Report, student=student, report_number=report_number)
+        serializer.save(report=report)

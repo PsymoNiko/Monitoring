@@ -76,6 +76,7 @@ class Payment(models.Model):
 
 class Report(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
     report_text = models.TextField()
     study_amount = models.FloatField()
     report_number = models.IntegerField()
@@ -85,10 +86,35 @@ class Report(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
 
+    class Meta:
+        get_latest_by = 'time_of_submit'
+
+    def __str__(self):
+        return f"{self.report_number}"
 
 
+class CommentOnReport(models.Model):
+    comment = models.TextField()
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
 
 
+class CommentOnReportCard(models.Model):
+    comment = models.TextField()
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
+    organization_culture = models.CharField(max_length=5)
 
+
+class ReportComment(models.Model):
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='mentor_comments')
+    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class AdminReportComment(models.Model):
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='admin_comments')
+    admin = models.OneToOneField(User, on_delete=models.CASCADE)
 
 
