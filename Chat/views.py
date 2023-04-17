@@ -1,8 +1,8 @@
 from django.shortcuts import render
-from Chat.models import Room
+from Chat.models import Room, Mentorship
 from rest_framework import viewsets
 from .models import Room, Message
-from .serializers import RoomSerializer, MessageSerializer
+from .serializers import RoomSerializer, MessageSerializer, MentorshipSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -32,6 +32,13 @@ class RoomViewSet(viewsets.ModelViewSet):
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+
+class MentorshipViewSet(viewsets.ModelViewSet):
+    queryset = Mentorship.objects.all()
+    serializer_class = MentorshipSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 

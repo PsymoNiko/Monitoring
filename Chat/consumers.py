@@ -44,7 +44,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
-from .models import Room, Message
+from .models import Room, Message, Student, Mentor
 
 
 class ChatConsumer(WebsocketConsumer):
@@ -58,6 +58,7 @@ class ChatConsumer(WebsocketConsumer):
         self.user_inbox = None
 
     def connect(self):
+
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'chat_{self.room_name}'
         self.room = Room.objects.get(name=self.room_name)
@@ -120,7 +121,10 @@ class ChatConsumer(WebsocketConsumer):
             self.room.online.remove(self.user)
 
     def receive(self, text_data=None, bytes_data=None):
+
         text_data_json = json.loads(text_data)
+
+
         message = text_data_json['message']
 
         if not self.user.is_authenticated:
@@ -157,6 +161,14 @@ class ChatConsumer(WebsocketConsumer):
             }
         )
         Message.objects.create(user=self.user, room=self.room, content=message)
+        message_type = text_data_json['type']
+        if message_type == 'get_students':
+            mentor_id = text_data_json['mentor_id']
+            mentor = Mentor.objects.get(id=mentor_id)
+            students = Student.objects.filter(mentor=mentor)
+            students_data = [{'id': student.id, 'name': student.name} for student in students]
+            response = {'type': 'students_list', 'students': students_data}
+            self.send(text_data=json.dumps(response))
 
     def chat_message(self, event):
         self.send(text_data=json.dumps(event))

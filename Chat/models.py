@@ -33,10 +33,16 @@ class Message(models.Model):
     def __str__(self):
         return f'{self.user.username}: {self.content} [{self.timestamp}]'
 
-# class Chat(models.Model):
-#     student = models.OneToOneField(Course, on_delete=models.CASCADE, related_name='student_chat')
-#     mentor = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='mentor_chat')
-#     students = models.OneToOneField(Mentor, on_delete=models.CASCADE)
 
+class Mentorship(models.Model):
+    mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-# Create your models here.
+    class Meta:
+        unique_together = ['mentor', 'student', 'course']
+
+    def __str__(self):
+        return f'{self.student} - {self.mentor} - {self.course} '

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Room, Message
+from .models import Room, Message, Mentorship
+
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -23,3 +24,9 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ['id', 'user', 'room', 'content', 'timestamp']
+
+
+class MentorshipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Mentorship
+        fields = '__all__'
