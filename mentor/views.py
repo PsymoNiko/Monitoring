@@ -10,6 +10,8 @@ from django.contrib.auth import authenticate, login
 from django.conf import settings
 
 import requests
+from redis import Redis
+import json
 
 from .serializers import MentorSerializer, MyTokenObtainPairSerializer, LoginViewAsMentorSerializer
 from .models import Mentor
@@ -66,3 +68,8 @@ class CustomObtainAuthToken(ObtainAuthToken):
             'token': token.key,
             'refresh_token': token.get_refresh_token(),
         }, status=status.HTTP_200_OK)
+    
+
+
+
+    

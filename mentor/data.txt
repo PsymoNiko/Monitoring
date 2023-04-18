@@ -1,0 +1,7 @@
+{
+    "mentor": 1,
+    "exam_name": "Sample Exam",
+    "exam_date": "2023-05-01",
+    "description": "This is a sample exam",
+    "is_deleted": false
+}

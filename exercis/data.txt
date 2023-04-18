@@ -39,4 +39,24 @@ for send exercise by student
 }
 
 
+#exam create
 
+{
+    "mentor": 1,
+    "exam_name": "Sample Exam",
+    "exam_date": "2023-05-01",
+    "description": "This is a sample exam",
+    "send_to_all": true,
+    "student_name":[1]
+
+}
+
+#send status exam
+
+
+{
+    "mentor": "1",
+    "exam": 1,
+    "status": "H",
+    "score": 90
+}

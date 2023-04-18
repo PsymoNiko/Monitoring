@@ -3,6 +3,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from django.contrib.auth.models import User
 from .models import Mentor
+from student.models import Student
+
 
 class MentorSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(required=True)
@@ -79,3 +81,6 @@ class LoginViewAsMentorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mentor
         fields = ('username', 'password')
+
+
+
