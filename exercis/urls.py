@@ -11,7 +11,15 @@ ExamStatusHomeView,
 GetMentorExerciseStatus,
 GetStudentExerciseStatus,
 MentorStudentExerciseList,
+AddGradeView,
 
+# GetAllGrade,
+AddGradeView,
+# ExamGradePut,
+# ExamGradeDetail
+GradeListView,
+GetAllExam,
+# MentorCreateExamViewSet
 )
 
 
@@ -28,9 +36,15 @@ urlpatterns = [
     path('student-status/', GetStudentExerciseStatus.as_view(), name='student_status'),
    
     #exam
+    # path('create-exam/', MentorCreateExamViewSet.as_view()),
     path('create-exam/', MentorCreateExam.as_view()),
+    path('get-exam/<int:exam_number>/', GetAllExam.as_view()),
+
+    path('exam/<int:exam_number>/<int:student_id>/', AddGradeView.as_view(), name='add_grade'),
+    path('grades/<int:exam_number>/', GradeListView.as_view()),
+
     path('send-status-exam/', ExamStatusSendView.as_view()),
     path('status-exam/', ExamStatusHomeView.as_view()),
-
+  
 
 ]
