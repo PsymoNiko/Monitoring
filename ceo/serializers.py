@@ -161,3 +161,9 @@ class AdminPaymentSerializer(serializers.ModelSerializer):
         model = AdminPayment
         fields = ('id', 'student', 'amount_of_receipt_of_each_month', 'receipt_count_during_course_length',
                   'date', 'jalali_date', 'total_payment')
+
+
+class ChangeAdminPasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    confirm_password = serializers.CharField(required=True)

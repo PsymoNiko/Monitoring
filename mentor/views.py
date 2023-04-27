@@ -3,10 +3,13 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
 
+from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 
-from .serializers import MentorSerializer, MyTokenObtainPairSerializer, LoginViewAsMentorSerializer
+from .serializers import MentorSerializer, MyTokenObtainPairSerializer, LoginViewAsMentorSerializer, \
+    ChangeMentorPasswordSerializer
 from .models import Mentor
 
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -54,3 +57,32 @@ class CustomObtainAuthToken(ObtainAuthToken):
             'token': token.key,
             'refresh_token': token.get_refresh_token(),
         }, status=status.HTTP_200_OK)
+
+
+class ChangeMentorPasswordView(generics.UpdateAPIView):
+    serializer_class = ChangeMentorPasswordSerializer
+    model = User
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            old_password = serializer.data.get("old_password")
+            new_password = serializer.data.get("new_password")
+            confirm_password = serializer.data.get("confirm_password")
+
+            if not self.object.check_password(old_password):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            if new_password != confirm_password:
+                return Response({"new_password": ["Passwords don't match."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            self.object.set_password(new_password)
+            self.object.save()
+            return Response({"status": "password changed"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

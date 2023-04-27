@@ -9,13 +9,14 @@ from rest_framework.exceptions import NotFound
 
 from django.http import Http404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.utils import timezone
 from django.contrib.auth import authenticate, login
 
-from .models import Student, Payment, Report
+from .models import Student, Payment, Report, StudentReceipt
 # from ceo.models import Admin
-from .serializers import StudentSerializer, StudentTokenObtainPairSerializer,\
-    LoginViewAsStudentSerializer, ReportSerializer#, PaymentSerializer
+from .serializers import StudentSerializer, StudentTokenObtainPairSerializer, \
+    LoginViewAsStudentSerializer, ReportSerializer, ChangeStudentPasswordSerializer, StudentReceiptSerializer  # , PaymentSerializer
 
 from django.shortcuts import redirect
 from rest_framework.authtoken.models import Token
@@ -56,6 +57,7 @@ class StudentLoginView(TokenObtainPairView):
 
 class LoginViewAsStudent(generics.CreateAPIView):
     serializer_class = LoginViewAsStudentSerializer
+
     def create(self, request, *args, **kwargs):
         # Get the username and password from the request data
         username = request.data.get('username')
@@ -103,6 +105,7 @@ class StudentDetailView(generics.RetrieveDestroyAPIView):
     def get_object(self):
         user_id = self.request.user.id
         return Student.objects.get(user=user_id)
+
 
 # {"username": "student_09109232094", "password": "0020064586"}
 
@@ -214,6 +217,39 @@ class UpdateUnSubmittedReportAPIView(generics.UpdateAPIView):
 #     serializer_class = PaymentSerializer
 
 
+class ChangeStudentPasswordView(generics.UpdateAPIView):
+    serializer_class = ChangeStudentPasswordSerializer
+    model = User
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            old_password = serializer.data.get("old_password")
+            new_password = serializer.data.get("new_password")
+            confirm_password = serializer.data.get("confirm_password")
+
+            if not self.object.check_password(old_password):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            if new_password != confirm_password:
+                return Response({"new_password": ["Passwords don't match."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            self.object.set_password(new_password)
+            self.object.save()
+            return Response({"status": "password changed"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class PostStudentReceiptViewSet(viewsets.ModelViewSet):
+    queryset = StudentReceipt.objects.all()
+    serializer_class = StudentReceiptSerializer
+    permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        serializer.save(student=self.request.user)

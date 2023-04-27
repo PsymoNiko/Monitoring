@@ -6,12 +6,12 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import LoginViewAsAdmin, MentorCreateView, StudentCreateView, CustomRedirectView, LogoutAPIView, \
     LoginViews, ApiRootView, CourseCreateView, CourseListView, CourseRetrieveUpdateDeleteView,\
     StudentListView, StudentDetailView, AdminDailyNotesCreation, AdminDailyNotesList,\
-    ListStudentOfEachCourse, AdminStudentOfEachClass, PaymentCreateView, StudentPaymentView
+    ListStudentOfEachCourse, AdminStudentOfEachClass, PaymentCreateView, StudentPaymentView, \
+    ChangeAdminPasswordView
 from .authentication import ObtainTokenPairView
 
-# from django.urls import reverse
+from django.contrib.auth import views as auth_views
 
-# url = reverse('course-detail', args=[])
 
 
 urlpatterns = [
@@ -37,9 +37,7 @@ urlpatterns = [
     path('students/', StudentListView.as_view(), name='admin-students-list'),
     path('students/<int:pk>/', StudentDetailView.as_view(), name='admin-students-details'),
 
-    # path('logout/', LogoutView.as_view(), name='logout')
     path('logout/', LogoutAPIView.as_view(), name='logout'),
-    path('login2/', LoginViews.as_view()),
 
     path('list/', ListStudentOfEachCourse.as_view(), name='list'),
     path('list/<int:pk>/', AdminStudentOfEachClass.as_view(), name='list-student'),
@@ -47,5 +45,8 @@ urlpatterns = [
     # Payment
     path('pay/', PaymentCreateView.as_view()),
     path('read-pay/<int:pk>/', StudentPaymentView.as_view()),
-    # path('payment/', CreateAdminPaymentView.as_view()),
+
+    # Change password
+    path('change-password/', ChangeAdminPasswordView.as_view(), name='change_admin_password'),
+
 ]

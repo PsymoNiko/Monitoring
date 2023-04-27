@@ -7,6 +7,7 @@ from django.urls import reverse_lazy
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.cache import cache
 
 from rest_framework.views import APIView
@@ -20,7 +21,8 @@ from mentor.serializers import MentorSerializer
 from mentor.models import Mentor
 from student.models import Student, AdminPayment
 from student.serializers import StudentSerializer
-from .serializers import LoginViewAsAdminSerializer, CourseSerializers, DailyNoteSerializers, AdminPaymentSerializer
+from .serializers import LoginViewAsAdminSerializer, CourseSerializers, DailyNoteSerializers, AdminPaymentSerializer, \
+    ChangeAdminPasswordSerializer
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -79,14 +81,13 @@ class ApiRootView(APIView):
 class MentorCreateView(generics.CreateAPIView):
     serializer_class = MentorSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
+
     # authentication_classes = [JWTAuthentication]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        mentor = serializer.create(serializer.validated_data)
-        # serializer.save()
-        # mentor.save()
+        serializer.create(serializer.validated_data)
 
         return Response({
             'message': 'Mentor account created successfully',
@@ -225,6 +226,7 @@ class StudentDetailView(generics.RetrieveUpdateDestroyAPIView):
 class AdminDailyNotesCreation(generics.CreateAPIView):
     serializer_class = DailyNoteSerializers
     permission_classes = [IsAuthenticated, IsAdminUser]
+
     # authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
@@ -288,6 +290,7 @@ class AdminStudentOfEachClass(generics.RetrieveDestroyAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
     permission_classes = [IsAuthenticated]
+
     # authentication_classes = [JWTAuthentication]
 
     # lookup_field = 'pk'
@@ -348,3 +351,32 @@ class StudentPaymentView(generics.RetrieveAPIView):
         #     redis_connection.set(f'student_{pk}_total_payment', data['total_payment'])
 
         return Response(data)
+
+
+class ChangeAdminPasswordView(generics.UpdateAPIView):
+    serializer_class = ChangeAdminPasswordSerializer
+    model = User
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            old_password = serializer.data.get("old_password")
+            new_password = serializer.data.get("new_password")
+            confirm_password = serializer.data.get("confirm_password")
+
+            if not self.object.check_password(old_password):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            if new_password != confirm_password:
+                return Response({"new_password": ["Passwords don't match."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            self.object.set_password(new_password)
+            self.object.save()
+            return Response({"status": "password changed"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

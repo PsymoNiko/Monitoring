@@ -98,6 +98,18 @@ class Payment(models.Model):
     is_deleted = models.BooleanField(default=False)
 
 
+class StudentReceipt(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='student_receipt')
+    receipt_image = models.ImageField(upload_to='receipt_images/')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.receipt_image} - {self.created_at}'
+
+
 class AdminPayment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='admin_payments')
     # payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='admin_payments')

@@ -9,7 +9,7 @@ from django.db import transaction
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 
-from .models import Student, Report, Payment, AdminPayment
+from .models import Student, Report, Payment, AdminPayment, StudentReceipt
 from ceo.models import Course
 from monitoring.utils import *
 
@@ -206,7 +206,6 @@ class AdminPaymentSerializer(serializers.ModelSerializer):
 #         fields = '__all__'
 
 
-
 class StudentPaymentSerializer(serializers.ModelSerializer):
     amount_of_receipt_of_each_month = serializers.SerializerMethodField()
     receipt_count_during_course_length = serializers.SerializerMethodField()
@@ -214,3 +213,15 @@ class StudentPaymentSerializer(serializers.ModelSerializer):
 
     def get_amount_of_receipt_of_each_month(self, obj):
         pass
+
+
+class ChangeStudentPasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    confirm_password = serializers.CharField(required=True)
+
+
+class StudentReceiptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentReceipt
+        fields = ('receipt_image', )

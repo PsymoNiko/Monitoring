@@ -134,3 +134,9 @@ class LoginViewAsMentorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mentor
         fields = ('username', 'password')
+
+
+class ChangeMentorPasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    confirm_password = serializers.CharField(required=True)
