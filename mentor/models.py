@@ -4,11 +4,6 @@ from django.contrib.auth.models import User,  AbstractUser
 
 
 
-# class Courses(models.Model):
-#     title = models.CharField(max_length=100)
-#     course_length = models.IntegerField()
-#     completed = models.IntegerField()
-
 class Mentor(models.Model):
 
 
@@ -37,5 +32,3 @@ class Mentor(models.Model):
     def __str__(self):
         return f"{self.id} - {self.first_name} {self.last_name}"
     
-
-

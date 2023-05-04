@@ -13,13 +13,7 @@
 }
 
  if use send to all
- { 
-    "mentor": 1,
-    "course_name": 1,
-    "send_to_all": true,
-    "exercise_name": "task2",
-    "caption": "z"
-}
+ 
 { "student_name":[1],
     "mentor": 1,
     "course_name": 1,
@@ -35,6 +29,11 @@ for send exercise by student
 {
   "student": 1,
   "mentor": 1,
+  "exercise_text": "Write a program to calculate the sum of two numbers"
+}
+
+{
+ 
   "exercise_text": "Write a program to calculate the sum of two numbers"
 }
 
@@ -65,7 +64,17 @@ for send exercise by student
 
 }
 
-
+{
+    "mentor": 1,
+"course_name":1,
+    "student_name": [1, 2],
+    "send_to_all": false,
+    "exam_name": "Sample Exam",
+    "description": "This is a sample exam",
+    "exam_number": 1,
+    "start_time": "2023-05-01T10:00:00Z",
+    "end_time": "2023-05-01T12:00:00Z"
+}
 
 {
     "mentor": 1,
@@ -73,7 +82,6 @@ for send exercise by student
     "send_to_all": false,
     "exam_name": "Sample Exam",
     "description": "This is a sample exam",
-    "exam_number": 1,
     "start_time": "2023-05-01T10:00:00Z",
     "end_time": "2023-05-01T12:00:00Z"
 }
@@ -89,39 +97,26 @@ for send exercise by student
     "score": 90
 }
 #for grade
+
 {
-    "student_name": 
-        "1",
-    "score": 
-        "12",
-    "description": 
-        "you are bad"
-    
-}
-{
-    "student_name":  "1",
+
     "score":  "12",
     "opinion": "you are bad"
     
 }
 
-[ {
-    "student_name": "1",  
-    "score": "12",      
-    "opinion": "you are bad" 
- }]
-
-{"mentor": 1,
-    "student_name":  [1],
-    "score":  "12",
-    "opinion": "you are bad"
-    
-}
 
 {
-    "mentor": 1,
-    "exam": 1,
-    "student_name": [1],
-    "score": 90,
+   
+    "score": 20,
     "opinion": "Good job!"
+}
+
+
+
+send exam answer
+
+{
+"caption": "this is 2",
+"student": [1]
 }
