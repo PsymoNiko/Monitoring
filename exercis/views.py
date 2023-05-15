@@ -3,8 +3,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
-from django.utils import timezone
-from django.shortcuts import get_object_or_404
 import datetime
 
 
@@ -28,8 +26,6 @@ from .serializers import (
 from ceo.models import Course
 from student.models import Student
 from mentor.models import Mentor
-# from redis import Redis
-# from django.core.cache import cache
 
 from rest_framework import generics
 
@@ -289,35 +285,6 @@ class AddGradeView(APIView):
 
 
 
-
-
-
-
-
-
-
-
-    # def post(self, request, id):
-    #     answer = self.get_object(id)
-    #     # answer = AnswerExam.objects.get(id=id)
-
-    #     # student = Student.objects.get(id=student_id)
-    #     student = answer.student
-    #     exam = answer.exam
-
-    #     # print(student)
-    #     if not answer :
-    #         return Response({"detail": "answer not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-    #     mentor = Mentor.objects.get(user=request.user)
-    #     serializer = GradeSerializer(data=request.data, context={'request': request, 'exam': exam})
-    #     serializer.is_valid(raise_exception=True)
-    #     # serializer.save(mentor=mentor, student_name=student, exam=exam)
-    #     grade = serializer.save(mentor=mentor, exam=exam)
-    #     grade.student_name.add([student])
-
-
-    #     return Response(grade, status=status.HTTP_201_CREATED)
 
 
 
